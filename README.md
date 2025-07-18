@@ -1,10 +1,11 @@
-# OpenTelemetry Instrumentation for Java
+# LongSuite Java Agent
 
-[![Release](https://img.shields.io/github/v/release/open-telemetry/opentelemetry-java-instrumentation?include_prereleases&style=)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/open-telemetry/opentelemetry-java-instrumentation/badge)](https://scorecard.dev/viewer/?uri=github.com/open-telemetry/opentelemetry-java-instrumentation)
-[![Slack](https://img.shields.io/badge/slack-@cncf/otel--java-blue.svg?logo=slack)](https://cloud-native.slack.com/archives/C014L2KCTE3)
+[![Release](https://img.shields.io/github/v/release/alibaba/loongsuite-java-agent?include_prereleases&style=)](https://github.com/alibaba/loongsuite-java-agent/releases/)
+
+A Java agent based on [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation) with Alibaba extensions and AI-related instrumentations.
 
 * [About](#about)
+* [Alibaba Extensions and AI Instrumentations](#alibaba-extensions-and-ai-instrumentations)
 * [Getting Started](#getting-started)
 * [Configuring the Agent](#configuring-the-agent)
 * [Supported libraries, frameworks, and application servers](#supported-libraries-frameworks-and-application-servers)
@@ -16,9 +17,12 @@
 
 ## About
 
-This project provides a Java agent JAR that can be attached to any Java 8+
-application and dynamically injects bytecode to capture telemetry from a
-number of popular libraries and frameworks.
+This project is based on [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation) and provides a Java agent JAR that can be attached to any Java 8+ application and dynamically injects bytecode to capture telemetry from a number of popular libraries and frameworks.
+
+In addition to the comprehensive instrumentation provided by OpenTelemetry, this distribution includes:
+- **Alibaba Extensions**: Custom instrumentations and integrations for Alibaba ecosystem tools
+- **AI-related Instrumentations**: Enhanced support for AI and machine learning frameworks with specialized telemetry collection
+
 You can export the telemetry data in a variety of formats.
 You can also configure the agent and exporter via command line arguments
 or environment variables. The net result is the ability to gather telemetry
@@ -30,10 +34,34 @@ Please see the standalone library instrumentation column
 on [Supported Libraries](docs/supported-libraries.md#libraries--frameworks).
 If you are looking for documentation on using those.
 
+## Alibaba Extensions and AI Instrumentations
+
+This distribution extends the base OpenTelemetry Java instrumentation with additional capabilities:
+
+### Alibaba Ecosystem Support
+- **Alibaba Druid**: Enhanced connection pool monitoring and database performance tracking
+- Additional Alibaba cloud services instrumentations (more coming soon)
+
+### AI and Machine Learning Instrumentations
+- **GenAI Support**: Specialized instrumentation for generative AI applications with token usage tracking, model performance metrics, and prompt/response logging
+- Enhanced observability for AI/ML workloads
+
+### Extension Examples
+
+The [examples/distro](examples/distro) directory demonstrates how to extend the OpenTelemetry Java agent with custom functionality. Available examples include:
+
+- **[DemoIdGenerator](examples/distro/custom/src/main/java/com/example/javaagent/DemoIdGenerator.java)** - Custom trace and span ID generation
+- **[DemoPropagator](examples/distro/custom/src/main/java/com/example/javaagent/DemoPropagator.java)** - Custom context propagation across service boundaries  
+- **[DemoSampler](examples/distro/custom/src/main/java/com/example/javaagent/DemoSampler.java)** - Custom sampling strategies for trace collection
+- **[DemoSpanProcessor](examples/distro/custom/src/main/java/com/example/javaagent/DemoSpanProcessor.java)** - Custom span processing and enrichment
+- **[DemoSpanExporter](examples/distro/custom/src/main/java/com/example/javaagent/DemoSpanExporter.java)** - Custom telemetry export destinations
+
+These examples serve as templates for creating your own agent distribution with custom extensions. See the [Distribution README](examples/distro/README.md) for detailed guidance on extending functionality.
+
 ## Getting Started
 
 Download
-the [latest version](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar).
+the [latest version](https://github.com/alibaba/loongsuite-java-agent/releases/latest/download/opentelemetry-javaagent.jar).
 
 This package includes the instrumentation agent as well as
 instrumentations for all supported libraries and all available data exporters.
@@ -76,7 +104,7 @@ see the [SDK configuration docs][config-sdk].
 
 *Note: Config parameter names are very likely to change over time, so please check
 back here when trying out a new version!
-Please [report any bugs](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues)
+Please [report any bugs](https://github.com/alibaba/loongsuite-java-agent/issues)
 or unexpected behavior you find.*
 
 ## Supported libraries, frameworks, and application servers
@@ -99,8 +127,15 @@ single jar file.
 
 ## Creating an agent distribution
 
-[Distribution](examples/distro/README.md) provides guidance on creating a separate distribution, serving as a collection of examples for extending the functionality of the OpenTelemetry Java instrumentation agent. It also demonstrates how to repackage the agent while incorporating custom features.
-[Agent extensions](#creating-agent-extensions) are recommended instead for most users as they are simpler and do not require rebuilding with each OpenTelemetry Java agent release.
+The [examples/distro](examples/distro/README.md) directory provides comprehensive guidance and examples for creating a separate distribution, serving as a collection of practical examples for extending the functionality of the OpenTelemetry Java instrumentation agent. It demonstrates how to repackage the agent while incorporating custom features such as:
+
+- Custom sampling strategies
+- Custom span processors and exporters  
+- Custom context propagators
+- Additional instrumentation modules
+- Resource providers and auto-configuration customizers
+
+The distro examples show how to build your own agent distribution with Alibaba-specific or domain-specific customizations. [Agent extensions](#creating-agent-extensions) are recommended instead for most users as they are simpler and do not require rebuilding with each OpenTelemetry Java agent release.
 
 ## Manually instrumenting
 
@@ -131,12 +166,23 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Maintainers
 
+- This project is maintained by Alibaba
+- Based on [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
+
+For more information about contributing and the maintainer role, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Acknowledgments
+
+This project is built upon the excellent work of the OpenTelemetry community. Special thanks to the original maintainers and contributors of [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation).
+
+### Original OpenTelemetry Maintainers
+
+The upstream OpenTelemetry Java Instrumentation project is maintained by:
+
 - [Lauri Tulmin](https://github.com/laurit), Splunk
 - [Trask Stalnaker](https://github.com/trask), Microsoft
 
-For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
-
-### Approvers
+### Original OpenTelemetry Approvers
 
 - [Gregor Zeitlinger](https://github.com/zeitlinger), Grafana
 - [Jack Berg](https://github.com/jack-berg), New Relic
@@ -150,19 +196,13 @@ For more information about the maintainer role, see the [community repository](h
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
-### Emeritus maintainers
+### Thanks to all contributors!
 
-- [Mateusz Rzeszutek](https://github.com/mateuszrzeszutek)
-- [Nikita Salnikov-Tarnovski](https://github.com/iNikem)
-- [Tyler Benson](https://github.com/tylerbenson)
-
-For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
-
-### Thanks to all of our contributors!
-
-<a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/graphs/contributors">
-  <img alt="Repo contributors" src="https://contrib.rocks/image?repo=open-telemetry/opentelemetry-java-instrumentation" />
+<a href="https://github.com/alibaba/loongsuite-java-agent/graphs/contributors">
+  <img alt="Repo contributors" src="https://contrib.rocks/image?repo=alibaba/loongsuite-java-agent" />
 </a>
+
+And special thanks to all [OpenTelemetry Java Instrumentation contributors](https://github.com/open-telemetry/opentelemetry-java-instrumentation/graphs/contributors)!
 
 [config-agent]: https://opentelemetry.io/docs/zero-code/java/agent/configuration/
 
