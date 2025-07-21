@@ -50,6 +50,8 @@ To turn on the agent's internal debug logging:
 **Note**: These logs are extremely verbose. Enable debug logging only when needed.
 Debug logging negatively impacts the performance of your application.
 
+## Community
+
 We are looking forward to your feedback and suggestions. You can join
 our [DingTalk user group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,VaFSqbGiRY0iAL3GGd18DRWDyb1HpgOuyfDzsX3Drng=&_dt_no_comment=1&origin=11?) and [DingTalk developer group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,p++Tn/fCshqbhFYK69wXUPUyQ6+W15jxiyfiicfdNPw=&_dt_no_comment=1&origin=11?)
 to engage with us.
