@@ -7,7 +7,7 @@ LoongSuite includes the following key components:
 * [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which prodivdes log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
 * [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent providing instrumentaion for java applications.
 * [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentaion for python applications.
-* [LoongSuite Go Agent](https://github.com/alibaba/opentelemetry-go-auto-instrumentation): a process agent for golang with compile time instrumentation.
+* [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent): a process agent for golang with compile time instrumentation.
 * Other upcoming language agent.
 
 Loongsuite Java Agent is also a customized distribution of upstream [OTel Java Agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation), with enhanced support for Alibaba extensions and popular AI agent framework.
@@ -63,3 +63,5 @@ to engage with us.
 ## Resoures
 * AgentScope: https://github.com/modelscope/agentscope
 * Observability Community: https://observability.cn
+
+[suppress]: https://opentelemetry.io/docs/zero-code/java/agent/disable/
