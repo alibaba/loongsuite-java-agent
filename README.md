@@ -1,16 +1,16 @@
-# LongSuite Java Agent
+# LoongSuite Java Agent
 
 ## Introduction
-Loongsuite Java Agent is a key component of LoongSuite, Alibaba's unified observability data collection suite, providing instrumentation for Java applications.
+LoongSuite Java Agent is a key component of LoongSuite, Alibaba's unified observability data collection suite, providing instrumentation for Java applications.
 
 LoongSuite includes the following key components:
-* [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which prodivdes log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
-* [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent providing instrumentaion for java applications.
-* [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentaion for python applications.
+* [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which provides log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
+* [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent providing instrumentation for java applications.
+* [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentation for python applications.
 * [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent): a process agent for golang with compile time instrumentation.
 * Other upcoming language agent.
 
-Loongsuite Java Agent is also a customized distribution of upstream [OTel Java Agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation), with enhanced support for Alibaba extensions and popular AI agent framework.
+LoongSuite Java Agent is also a customized distribution of upstream [OTel Java Agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation), with enhanced support for Alibaba extensions and popular AI agent framework.
 
 ## Supported libraries, frameworks, and application servers
 
@@ -36,7 +36,6 @@ single jar file.
 - **[DemoSpanProcessor](examples/extension/src/main/java/com/example/javaagent/DemoSpanProcessor.java)** - Custom span processing and enrichment
 - **[DemoSpanExporter](examples/extension/src/main/java/com/example/javaagent/DemoSpanExporter.java)** - Custom telemetry export destinations
 - **[DemoAutoConfigurationCustomizerProvider](examples/extension/src/main/java/com/example/javaagent/DemoAutoConfigurationCustomizerProvider.java)** - Custom agent configuration customization
-- **[DemoPropagator](examples/extension/src/main/java/com/example/javaagent/DemoPropagator.java)** - Custom context propagation implementation
 - **[DemoServlet3InstrumentationModule](examples/extension/src/main/java/com/example/javaagent/instrumentation/DemoServlet3InstrumentationModule.java)** - Additional instrumentation for specific framework
 
 These examples serve as templates for creating your own custom extensions.
@@ -60,7 +59,7 @@ to engage with us.
 |-------------------------|---------------------------|
 | <img src="docs/_assets/img/dingtalk-chat-group.jpg" height="150"> | <img src="docs/_assets/img/dev-group.jpg" height="150"> |
 
-## Resoures
+## Resources
 * AgentScope: https://github.com/modelscope/agentscope
 * Observability Community: https://observability.cn
 
