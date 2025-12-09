@@ -11,6 +11,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.ContextCustomizer;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.InstrumenterBuilder;
 import io.opentelemetry.instrumentation.api.internal.HttpRouteState;
+import io.opentelemetry.instrumentation.api.internal.InternalHttpServerRouteListenerUtil;
 import javax.annotation.Nullable;
 
 /**
@@ -119,6 +120,9 @@ public final class HttpServerRoute {
         // update just the span name - the attribute will be picked up by the
         // HttpServerAttributesExtractor at the end of request processing
         updateSpanName(serverSpan, httpRouteState, route);
+        // Notify listeners about the span name update
+        InternalHttpServerRouteListenerUtil.notifySpanNameUpdate(
+            context, serverSpan, httpRouteState.getMethod() + " " + route);
 
         httpRouteState.update(context, source.order, route);
       }
