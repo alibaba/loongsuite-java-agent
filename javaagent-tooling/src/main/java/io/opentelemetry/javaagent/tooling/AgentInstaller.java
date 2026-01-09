@@ -33,6 +33,7 @@ import io.opentelemetry.javaagent.bootstrap.internal.ConfiguredResourceAttribute
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.javaagent.extension.ignore.IgnoredTypesConfigurer;
 import io.opentelemetry.javaagent.extension.instrumentation.internal.EarlyInstrumentationModule;
+import io.opentelemetry.javaagent.extension.internal.ConfigPropertiesUtil;
 import io.opentelemetry.javaagent.tooling.asyncannotationsupport.WeakRefAsyncOperationEndStrategies;
 import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesBuilderImpl;
 import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesConfigurer;
@@ -48,6 +49,7 @@ import io.opentelemetry.javaagent.tooling.muzzle.AgentTooling;
 import io.opentelemetry.javaagent.tooling.util.Trie;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.SdkAutoconfigureAccess;
+import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
@@ -165,8 +167,10 @@ public class AgentInstaller {
     AutoConfiguredOpenTelemetrySdk autoConfiguredSdk =
         installOpenTelemetrySdk(extensionClassLoader);
 
-    ConfigProperties sdkConfig = AgentListener.resolveConfigProperties(autoConfiguredSdk);
-    AgentInstrumentationConfig.internalInitializeConfig(new ConfigPropertiesBridge(sdkConfig));
+    ConfigProperties sdkConfig = ConfigPropertiesUtil.resolveConfigProperties(autoConfiguredSdk);
+    AgentInstrumentationConfig.internalInitializeConfig(
+        new ConfigPropertiesBridge(
+            sdkConfig, AutoConfigureUtil.getConfigProvider(autoConfiguredSdk)));
     copyNecessaryConfigToSystemProperties(sdkConfig);
 
     setBootstrapPackages(sdkConfig, extensionClassLoader);
@@ -488,6 +492,7 @@ public class AgentInstaller {
       Thread thread = new Thread(this::runAgentListeners);
       thread.setName("delayed-agent-listeners");
       thread.setDaemon(true);
+      thread.setContextClassLoader(null);
       thread.start();
     }
 
