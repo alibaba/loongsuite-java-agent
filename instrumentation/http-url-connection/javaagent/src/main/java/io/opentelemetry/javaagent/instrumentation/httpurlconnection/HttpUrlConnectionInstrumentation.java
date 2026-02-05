@@ -87,7 +87,7 @@ public class HttpUrlConnectionInstrumentation implements TypeInstrumentation {
 
         if (httpUrlState != null) {
           if (!httpUrlState.finished) {
-            return new AdviceScope(callDepth, httpUrlState, httpUrlState.context.makeCurrent());
+            return new AdviceScope(callDepth, httpUrlState, httpUrlState.getContext().makeCurrent());
           }
           return new AdviceScope(callDepth, httpUrlState, null);
         }
@@ -117,29 +117,29 @@ public class HttpUrlConnectionInstrumentation implements TypeInstrumentation {
 
           String requestMethod = connection.getRequestMethod();
           GetOutputStreamContext.set(
-              httpUrlState.context, connectionClass, methodName, requestMethod);
+              httpUrlState.getContext(), connectionClass, methodName, requestMethod);
 
           if (throwable != null) {
             if (responseCode >= 400) {
               // HttpURLConnection unnecessarily throws exception on error response.
               // None of the other http clients do this, so not recording the exception on the span
               // to be consistent with the telemetry for other http clients.
-              instrumenter().end(httpUrlState.context, connection, responseCode, null);
+              instrumenter().end(httpUrlState.getContext(), connection, responseCode, null);
             } else {
               instrumenter()
                   .end(
-                      httpUrlState.context,
+                      httpUrlState.getContext(),
                       connection,
                       responseCode > 0 ? responseCode : httpUrlState.statusCode,
                       throwable);
             }
-            httpUrlState.finished = true;
+            httpUrlState.setFinished(true);
           } else if (methodName.equals("getInputStream") && responseCode > 0) {
             // responseCode field is sometimes not populated.
             // We can't call getResponseCode() due to some unwanted side-effects
             // (e.g. breaks getOutputStream).
-            instrumenter().end(httpUrlState.context, connection, responseCode, null);
-            httpUrlState.finished = true;
+            instrumenter().end(httpUrlState.getContext(), connection, responseCode, null);
+            httpUrlState.setFinished(true);
           }
         } finally {
           callDepth.decrementAndGet();
