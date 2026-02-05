@@ -33,7 +33,10 @@ public final class UndertowActiveHandlers {
    * @param context server context
    */
   public static void increment(Context context) {
-    context.get(CONTEXT_KEY).incrementAndGet();
+    AtomicInteger integer = context.get(CONTEXT_KEY);
+    if (integer != null) {
+      integer.incrementAndGet();
+    }
   }
 
   /**
@@ -43,6 +46,10 @@ public final class UndertowActiveHandlers {
    * @return value of counter after decrementing it
    */
   public static int decrementAndGet(Context context) {
-    return context.get(CONTEXT_KEY).decrementAndGet();
+    AtomicInteger integer = context.get(CONTEXT_KEY);
+    if (integer != null) {
+      return integer.decrementAndGet();
+    }
+    return -1;
   }
 }
