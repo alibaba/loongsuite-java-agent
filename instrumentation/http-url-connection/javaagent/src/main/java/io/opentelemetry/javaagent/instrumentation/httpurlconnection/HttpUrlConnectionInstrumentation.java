@@ -87,7 +87,8 @@ public class HttpUrlConnectionInstrumentation implements TypeInstrumentation {
 
         if (httpUrlState != null) {
           if (!httpUrlState.finished) {
-            return new AdviceScope(callDepth, httpUrlState, httpUrlState.getContext().makeCurrent());
+            return new AdviceScope(
+                callDepth, httpUrlState, httpUrlState.getContext().makeCurrent());
           }
           return new AdviceScope(callDepth, httpUrlState, null);
         }

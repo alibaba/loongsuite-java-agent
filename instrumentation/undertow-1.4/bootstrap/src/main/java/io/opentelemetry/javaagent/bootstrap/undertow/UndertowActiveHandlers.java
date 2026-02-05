@@ -47,7 +47,7 @@ public final class UndertowActiveHandlers {
    */
   public static int decrementAndGet(Context context) {
     AtomicInteger integer = context.get(CONTEXT_KEY);
-    if(integer != null) {
+    if (integer != null) {
       return integer.decrementAndGet();
     }
     return -1;
