@@ -153,7 +153,7 @@ public class Instrumenter<REQUEST, RESPONSE> {
   public Context start(Context parentContext, REQUEST request) {
     try {
       return doStart(parentContext, request, null);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       logger.log(Level.WARNING, "[Instrumenter] start failed", e);
       return parentContext;
     }
