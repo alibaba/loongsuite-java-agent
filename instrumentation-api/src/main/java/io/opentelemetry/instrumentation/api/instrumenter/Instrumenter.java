@@ -21,6 +21,8 @@ import io.opentelemetry.instrumentation.api.internal.SupportabilityMetrics;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 /**
@@ -87,6 +89,7 @@ public class Instrumenter<REQUEST, RESPONSE> {
   private final boolean enabled;
   private final SpanSuppressor spanSuppressor;
   private final InternalShouldStartFilter<? super REQUEST> shouldStartFilter;
+  private static final Logger logger = Logger.getLogger(Instrumenter.class.getName());
 
   // to allow converting generic lists to arrays with toArray
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -148,7 +151,12 @@ public class Instrumenter<REQUEST, RESPONSE> {
    * object of this operation.
    */
   public Context start(Context parentContext, REQUEST request) {
-    return doStart(parentContext, request, null);
+    try {
+      return doStart(parentContext, request, null);
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, "[Instrumenter] start failed", e);
+      return parentContext;
+    }
   }
 
   /**
@@ -163,7 +171,11 @@ public class Instrumenter<REQUEST, RESPONSE> {
    */
   public void end(
       Context context, REQUEST request, @Nullable RESPONSE response, @Nullable Throwable error) {
-    doEnd(context, request, response, error, null);
+    try {
+      doEnd(context, request, response, error, null);
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, "[Instrumenter] end failed", e);
+    }
   }
 
   /** Internal method for creating spans with given start/end timestamps. */
