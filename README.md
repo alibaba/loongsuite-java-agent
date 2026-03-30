@@ -5,10 +5,10 @@ LoongSuite Java Agent is a key component of LoongSuite, Alibaba's unified observ
 
 LoongSuite includes the following key components:
 * [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which provides log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
-* [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent providing instrumentation for java applications.
-* [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentation for python applications.
+* [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent providing instrumentation for Java applications.
+* [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentation for Python applications.
 * [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent): a process agent for golang with compile time instrumentation.
-* Other upcoming language agent.
+* Other upcoming language agents.
 
 LoongSuite Java Agent is also a customized distribution of upstream [OTel Java Agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation), with enhanced support for Alibaba extensions and popular AI agent framework.
 
