@@ -1,0 +1,80 @@
+server:
+  port: 8080
+
+# -------------------------------------------------------
+# GenAI configuration
+# -------------------------------------------------------
+genai:
+  # All values can be set via -D flags or environment variables:
+  #   mvn spring-boot:run -Dgenai.api-key=sk-xxx -Dgenai.base-url=https://... -Dgenai.model=qwen-plus
+  #
+  # Or via environment variables:
+  #   export GENAI_API_KEY=sk-xxx
+  #   export GENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+  #   export GENAI_PROVIDER=dashscope
+  #   export GENAI_MODEL=qwen-plus
+  api-key: ${GENAI_API_KEY:}
+  base-url: ${GENAI_BASE_URL:https://api.openai.com/v1}
+  provider: ${GENAI_PROVIDER:openai}
+  model: ${GENAI_MODEL:qwen-plus}
+  temperature: ${GENAI_TEMPERATURE:0.7}
+  max-tokens: ${GENAI_MAX_TOKENS:1024}
+
+# -------------------------------------------------------
+# GenAI semconv stability opt-in
+# Required to enable experimental content capturing modes
+# (span_only, event_only, span_and_event).
+# Without this, only "true" (= span_only) is recognized.
+# -------------------------------------------------------
+otel.semconv.stability.opt.in: gen_ai_latest_experimental
+
+# -------------------------------------------------------
+# GenAI content capturing
+# Controls whether input/output messages are recorded in spans and events.
+#
+# Stable mode (without opt-in above):
+#   true  -> capture on spans (backward compatible)
+#   false -> no capture (default)
+#
+# Experimental mode (with opt-in above):
+#   no_content     -> no capture (default)
+#   span_only      -> capture on span attributes
+#   event_only     -> capture via log events (recommended)
+#   span_and_event -> capture on both
+# -------------------------------------------------------
+otel.instrumentation.genai:
+  capture.message.content: span_and_event
+  emit.event: true
+
+# -------------------------------------------------------
+# OpenTelemetry SDK configuration
+# These properties are bridged into AutoConfiguredOpenTelemetrySdk
+# at startup. Changes here take effect on restart.
+#
+# Reference: https://opentelemetry.io/docs/languages/java/configuration/
+# -------------------------------------------------------
+otel:
+  service:
+    name: ${OTEL_SERVICE_NAME:genai-example}
+  # resource:
+  #   attributes: ${OTEL_RESOURCE_ATTRIBUTES:service.version=1.0}
+  traces:
+    exporter: ${OTEL_TRACES_EXPORTER:logging}           # logging | otlp | none
+  metrics:
+    exporter: ${OTEL_METRICS_EXPORTER:logging}          # logging | otlp | none
+  logs:
+    exporter: ${OTEL_LOGS_EXPORTER:none}                # logging | otlp | none
+  metric:
+    export:
+      interval: ${OTEL_METRIC_EXPORT_INTERVAL:5000}     # metric export interval in ms
+  exporter:
+    otlp:
+      # Global endpoint (used if per-signal endpoints are not set)
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+      protocol: ${OTEL_EXPORTER_OTLP_PROTOCOL:grpc}    # grpc | http/protobuf
+      # headers: ${OTEL_EXPORTER_OTLP_HEADERS:key=value}
+      # Per-signal endpoints (set only when needed, e.g. ARMS uses separate trace/metric endpoints)
+      # traces:
+      #   endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:}
+      # metrics:
+      #   endpoint: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:}
