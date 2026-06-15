@@ -12,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+/**
+ * SCG 2.0 does not populate matched path predicate exchange attributes (added in 3.0.5), so {@code
+ * http.route} falls back to route ID when path-pattern mode is the default.
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -34,7 +38,17 @@ class GatewayRouteMappingTest extends AbstractRouteMappingTest {
   }
 
   @Override
+  protected String getRandomUuidSpanName() {
+    return "POST";
+  }
+
+  @Override
   protected List<AttributeAssertion> getFakeUuidExpectedAttributes(String routeId) {
     return buildAttributeAssertions(routeId, "h1c://mock.fake", 0, 1);
+  }
+
+  @Override
+  protected String getFakeUuidSpanName(String routeId) {
+    return "POST " + routeId;
   }
 }

@@ -37,7 +37,7 @@ public abstract class AbstractRouteMappingTest {
   protected static final String WEBFLUX_SPAN_NAME = "FilteringWebHandler.handle";
 
   protected String getSpanName() {
-    return "POST";
+    return "POST /gateway/echo";
   }
 
   protected String getInternalSpanName() {
@@ -104,7 +104,7 @@ public abstract class AbstractRouteMappingTest {
   }
 
   protected String getRandomUuidSpanName() {
-    return "POST";
+    return "POST /uuid/echo";
   }
 
   protected List<AttributeAssertion> getRandomUuidExpectedAttributes() {
@@ -112,7 +112,7 @@ public abstract class AbstractRouteMappingTest {
   }
 
   protected String getFakeUuidSpanName(String routeId) {
-    return "POST " + routeId;
+    return "POST /fake/echo";
   }
 
   protected List<AttributeAssertion> getFakeUuidExpectedAttributes(String routeId) {

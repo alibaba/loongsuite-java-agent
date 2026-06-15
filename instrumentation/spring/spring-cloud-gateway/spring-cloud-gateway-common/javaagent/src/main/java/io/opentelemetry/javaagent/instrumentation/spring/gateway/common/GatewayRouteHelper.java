@@ -32,13 +32,25 @@ public final class GatewayRouteHelper {
   public static final AttributeKey<Long> ROUTE_FILTER_SIZE_ATTRIBUTE =
       AttributeKey.longKey("spring-cloud-gateway.route.filter.size");
 
+  /**
+   * Uses the matched path predicate pattern (e.g. {@code /api/users/**}) for {@code http.route}.
+   */
+  public static final String HTTP_ROUTE_FORMAT_PATH_PATTERN = "path-pattern";
+
   private static final boolean CAPTURE_EXPERIMENTAL_SPAN_ATTRIBUTES;
+  private static final boolean USE_PATH_PATTERN_FOR_HTTP_ROUTE;
 
   static {
     CAPTURE_EXPERIMENTAL_SPAN_ATTRIBUTES =
         AgentInstrumentationConfig.get()
             .getBoolean(
                 "otel.instrumentation.spring-cloud-gateway.experimental-span-attributes", false);
+    String httpRouteFormat =
+        AgentInstrumentationConfig.get()
+            .getString(
+                "otel.instrumentation.spring-cloud-gateway.http-route-format",
+                HTTP_ROUTE_FORMAT_PATH_PATTERN);
+    USE_PATH_PATTERN_FOR_HTTP_ROUTE = HTTP_ROUTE_FORMAT_PATH_PATTERN.equals(httpRouteFormat);
   }
 
   /* Regex for UUID */
@@ -54,6 +66,11 @@ public final class GatewayRouteHelper {
   /** Returns whether experimental span attributes should be captured. */
   public static boolean shouldCaptureExperimentalSpanAttributes() {
     return CAPTURE_EXPERIMENTAL_SPAN_ATTRIBUTES;
+  }
+
+  /** Returns whether {@code http.route} should use the matched path predicate pattern. */
+  public static boolean usePathPatternForHttpRoute() {
+    return USE_PATH_PATTERN_FOR_HTTP_ROUTE;
   }
 
   /**
