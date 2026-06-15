@@ -18,13 +18,19 @@ LoongSuite 包含以下关键组件：
 
 ## Maven 坐标
 
+将 `${otel-util-genai.version}` 替换为 Maven Central 上 [`otel-util-genai` 最新版本](https://central.sonatype.com/artifact/com.alibaba.loongsuite/otel-util-genai)。
+
 ```xml
-<groupId>com.alibaba.loongsuite</groupId>
-<artifactId>otel-util-genai</artifactId>
-<version>0.1.0-SNAPSHOT</version>
+<dependency>
+    <groupId>com.alibaba.loongsuite</groupId>
+    <artifactId>otel-util-genai</artifactId>
+    <version>${otel-util-genai.version}</version>
+</dependency>
 ```
 
 ## 安装
+
+将 `${otel-util-genai.version}` 与 `${opentelemetry.version}` 分别替换为 Maven Central 上 [`otel-util-genai`](https://central.sonatype.com/artifact/com.alibaba.loongsuite/otel-util-genai) 与 [`opentelemetry-bom`](https://central.sonatype.com/artifact/io.opentelemetry/opentelemetry-bom) 的最新发布版本。
 
 ### Maven
 
@@ -34,7 +40,7 @@ LoongSuite 包含以下关键组件：
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-bom</artifactId>
-            <version>1.62.0</version>
+            <version>${opentelemetry.version}</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -44,7 +50,7 @@ LoongSuite 包含以下关键组件：
     <dependency>
         <groupId>com.alibaba.loongsuite</groupId>
         <artifactId>otel-util-genai</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>${otel-util-genai.version}</version>
     </dependency>
     <dependency>
         <groupId>io.opentelemetry</groupId>
@@ -60,8 +66,12 @@ LoongSuite 包含以下关键组件：
 ### Gradle
 
 ```groovy
-implementation platform('io.opentelemetry:opentelemetry-bom:1.62.0')
-implementation 'com.alibaba.loongsuite:otel-util-genai:0.1.0-SNAPSHOT'
+// 使用 Maven Central 上的最新版本
+def otelUtilGenaiVersion = '...'      // otel-util-genai
+def opentelemetryBomVersion = '...'   // opentelemetry-bom
+
+implementation platform("io.opentelemetry:opentelemetry-bom:${opentelemetryBomVersion}")
+implementation "com.alibaba.loongsuite:otel-util-genai:${otelUtilGenaiVersion}"
 implementation 'io.opentelemetry:opentelemetry-sdk'
 implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 ```
@@ -94,7 +104,7 @@ try (var inv = handler.inference("openai", "gpt-4o")) {
 ## 要求
 
 - Java 17+
-- OpenTelemetry API 1.62.0+
+- OpenTelemetry API（使用最新的 `opentelemetry-bom` 发布版本）
 
 ## 社区
 
@@ -111,4 +121,4 @@ try (var inv = handler.inference("openai", "gpt-4o")) {
 
 ## License
 
-Apache License 2.0
+This project is licensed under the [Apache License 2.0](LICENSE)

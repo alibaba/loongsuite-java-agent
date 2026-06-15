@@ -18,13 +18,19 @@ Built on [OTel GenAI Semantic Conventions v1.41.1](https://github.com/open-telem
 
 ## Maven Coordinates
 
+Replace `${otel-util-genai.version}` with the [latest `otel-util-genai` release](https://central.sonatype.com/artifact/com.alibaba.loongsuite/otel-util-genai) from Maven Central.
+
 ```xml
-<groupId>com.alibaba.loongsuite</groupId>
-<artifactId>otel-util-genai</artifactId>
-<version>0.1.0-SNAPSHOT</version>
+<dependency>
+    <groupId>com.alibaba.loongsuite</groupId>
+    <artifactId>otel-util-genai</artifactId>
+    <version>${otel-util-genai.version}</version>
+</dependency>
 ```
 
 ## Installation
+
+Replace `${otel-util-genai.version}` and `${opentelemetry.version}` with the latest releases of [`otel-util-genai`](https://central.sonatype.com/artifact/com.alibaba.loongsuite/otel-util-genai) and [`opentelemetry-bom`](https://central.sonatype.com/artifact/io.opentelemetry/opentelemetry-bom) from Maven Central.
 
 ### Maven
 
@@ -34,7 +40,7 @@ Built on [OTel GenAI Semantic Conventions v1.41.1](https://github.com/open-telem
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-bom</artifactId>
-            <version>1.62.0</version>
+            <version>${opentelemetry.version}</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -44,7 +50,7 @@ Built on [OTel GenAI Semantic Conventions v1.41.1](https://github.com/open-telem
     <dependency>
         <groupId>com.alibaba.loongsuite</groupId>
         <artifactId>otel-util-genai</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>${otel-util-genai.version}</version>
     </dependency>
     <dependency>
         <groupId>io.opentelemetry</groupId>
@@ -60,8 +66,12 @@ Built on [OTel GenAI Semantic Conventions v1.41.1](https://github.com/open-telem
 ### Gradle
 
 ```groovy
-implementation platform('io.opentelemetry:opentelemetry-bom:1.62.0')
-implementation 'com.alibaba.loongsuite:otel-util-genai:0.1.0-SNAPSHOT'
+// Use the latest releases from Maven Central
+def otelUtilGenaiVersion = '...'      // otel-util-genai
+def opentelemetryBomVersion = '...'   // opentelemetry-bom
+
+implementation platform("io.opentelemetry:opentelemetry-bom:${opentelemetryBomVersion}")
+implementation "com.alibaba.loongsuite:otel-util-genai:${otelUtilGenaiVersion}"
 implementation 'io.opentelemetry:opentelemetry-sdk'
 implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 ```
@@ -94,7 +104,7 @@ See [docs/USAGE.md](docs/USAGE.md) for all operation types, streaming, error han
 ## Requirements
 
 - Java 17+
-- OpenTelemetry API 1.62.0+
+- OpenTelemetry API (use the latest `opentelemetry-bom` release)
 
 ## Community
 
@@ -113,4 +123,4 @@ to engage with us.
 
 ## License
 
-Apache License 2.0
+This project is licensed under the [Apache License 2.0](LICENSE)
