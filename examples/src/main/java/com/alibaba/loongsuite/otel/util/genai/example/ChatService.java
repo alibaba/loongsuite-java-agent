@@ -118,7 +118,7 @@ public class ChatService {
   private ChatResponse extractResponse(ChatCompletion completion) {
     String content =
         completion.choices().stream()
-            .flatMap(choice -> choice.message().content().stream())
+            .map(choice -> choice.message().content().orElse(""))
             .collect(Collectors.joining());
 
     return new ChatResponse(

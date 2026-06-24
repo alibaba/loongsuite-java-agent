@@ -6,16 +6,16 @@ server:
 # -------------------------------------------------------
 genai:
   # All values can be set via -D flags or environment variables:
-  #   mvn spring-boot:run -Dgenai.api-key=sk-xxx -Dgenai.base-url=https://... -Dgenai.model=qwen-plus
+  #   mvn spring-boot:run -Dgenai.api-key=<your-api-key> -Dgenai.base-url=https://... -Dgenai.model=qwen-plus
   #
   # Or via environment variables:
-  #   export GENAI_API_KEY=sk-xxx
+  #   export GENAI_API_KEY=<your-api-key>
   #   export GENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
   #   export GENAI_PROVIDER=dashscope
   #   export GENAI_MODEL=qwen-plus
-  api-key: ${GENAI_API_KEY:}
-  base-url: ${GENAI_BASE_URL:https://api.openai.com/v1}
-  provider: ${GENAI_PROVIDER:openai}
+  api-key: ${GENAI_API_KEY:<your-api-key>}
+  base-url: ${GENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+  provider: ${GENAI_PROVIDER:dashscope}
   model: ${GENAI_MODEL:qwen-plus}
   temperature: ${GENAI_TEMPERATURE:0.7}
   max-tokens: ${GENAI_MAX_TOKENS:1024}
@@ -52,29 +52,30 @@ otel.instrumentation.genai:
 # at startup. Changes here take effect on restart.
 #
 # Reference: https://opentelemetry.io/docs/languages/java/configuration/
+#   export OTEL_RESOURCE_ATTRIBUTES=service.name=<your-service-name>,acs.cms.workspace=<your-workspace>,service.version=<your-version>,deployment.environment=<your-environment>
+#   export OTEL_EXPORTER_OTLP_HEADERS=x-arms-license-key=<your-license-key>,x-arms-project=<your-project>,x-cms-workspace=<your-workspace>
+#   export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/traces
+#   export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/metrics
 # -------------------------------------------------------
 otel:
   service:
     name: ${OTEL_SERVICE_NAME:genai-example}
-  # resource:
-  #   attributes: ${OTEL_RESOURCE_ATTRIBUTES:service.version=1.0}
+  resource:
+    attributes: ${OTEL_RESOURCE_ATTRIBUTES:service.name=<your-service-name>,acs.cms.workspace=<your-workspace>,service.version=<your-version>,deployment.environment=<your-environment>}
   traces:
-    exporter: ${OTEL_TRACES_EXPORTER:logging}           # logging | otlp | none
+    exporter: ${OTEL_TRACES_EXPORTER:otlp}
   metrics:
-    exporter: ${OTEL_METRICS_EXPORTER:logging}          # logging | otlp | none
+    exporter: ${OTEL_METRICS_EXPORTER:otlp}
   logs:
-    exporter: ${OTEL_LOGS_EXPORTER:none}                # logging | otlp | none
+    exporter: ${OTEL_LOGS_EXPORTER:none}
   metric:
     export:
-      interval: ${OTEL_METRIC_EXPORT_INTERVAL:5000}     # metric export interval in ms
+      interval: ${OTEL_METRIC_EXPORT_INTERVAL:5000}
   exporter:
     otlp:
-      # Global endpoint (used if per-signal endpoints are not set)
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
-      protocol: ${OTEL_EXPORTER_OTLP_PROTOCOL:grpc}    # grpc | http/protobuf
-      # headers: ${OTEL_EXPORTER_OTLP_HEADERS:key=value}
-      # Per-signal endpoints (set only when needed, e.g. ARMS uses separate trace/metric endpoints)
-      # traces:
-      #   endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:}
-      # metrics:
-      #   endpoint: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:}
+      protocol: ${OTEL_EXPORTER_OTLP_PROTOCOL:http/protobuf}
+      headers: ${OTEL_EXPORTER_OTLP_HEADERS:x-arms-license-key=<your-license-key>,x-arms-project=<your-project>,x-cms-workspace=<your-workspace>}
+      traces:
+        endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/traces}
+      metrics:
+        endpoint: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/metrics}
