@@ -16,13 +16,53 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
-public record ServerToolCallResponsePart(@Nullable String id, Object serverToolCallResponse)
-    implements MessagePart {
+public final class ServerToolCallResponsePart implements MessagePart {
+
+  @Nullable private final String id;
+  private final Object serverToolCallResponse;
+
+  public ServerToolCallResponsePart(@Nullable String id, Object serverToolCallResponse) {
+    this.id = id;
+    this.serverToolCallResponse = serverToolCallResponse;
+  }
+
+  @Nullable
+  public String id() {
+    return id;
+  }
+
+  public Object serverToolCallResponse() {
+    return serverToolCallResponse;
+  }
 
   @Override
   public String type() {
     return "server_tool_call_response";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ServerToolCallResponsePart)) return false;
+    ServerToolCallResponsePart that = (ServerToolCallResponsePart) o;
+    return Objects.equals(id, that.id)
+        && Objects.equals(serverToolCallResponse, that.serverToolCallResponse);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, serverToolCallResponse);
+  }
+
+  @Override
+  public String toString() {
+    return "ServerToolCallResponsePart[id="
+        + id
+        + ", serverToolCallResponse="
+        + serverToolCallResponse
+        + "]";
   }
 }

@@ -172,11 +172,11 @@ public final class GenAiConfigUtil {
     String sysPropName = envVarName.toLowerCase().replace('_', '.');
     String value = System.getProperty(sysPropName);
     if (value != null && !value.isEmpty()) {
-      return value.strip();
+      return value.trim();
     }
     value = System.getenv(envVarName);
     if (value != null && !value.isEmpty()) {
-      return value.strip();
+      return value.trim();
     }
     return null;
   }

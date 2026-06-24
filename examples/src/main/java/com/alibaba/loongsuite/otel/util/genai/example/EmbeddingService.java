@@ -69,5 +69,22 @@ public class EmbeddingService {
     }
   }
 
-  public record EmbeddingResponse(String model, int dimensions, long inputTokens, int vectorCount) {}
+  public static class EmbeddingResponse {
+    private final String model;
+    private final int dimensions;
+    private final long inputTokens;
+    private final int vectorCount;
+
+    public EmbeddingResponse(String model, int dimensions, long inputTokens, int vectorCount) {
+      this.model = model;
+      this.dimensions = dimensions;
+      this.inputTokens = inputTokens;
+      this.vectorCount = vectorCount;
+    }
+
+    public String getModel() { return model; }
+    public int getDimensions() { return dimensions; }
+    public long getInputTokens() { return inputTokens; }
+    public int getVectorCount() { return vectorCount; }
+  }
 }

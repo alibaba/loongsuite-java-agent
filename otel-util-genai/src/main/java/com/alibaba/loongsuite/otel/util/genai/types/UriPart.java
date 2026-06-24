@@ -16,13 +16,56 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
-public record UriPart(String modality, @Nullable String mimeType, String uri)
-    implements MessagePart {
+public final class UriPart implements MessagePart {
+
+  private final String modality;
+  @Nullable private final String mimeType;
+  private final String uri;
+
+  public UriPart(String modality, @Nullable String mimeType, String uri) {
+    this.modality = modality;
+    this.mimeType = mimeType;
+    this.uri = uri;
+  }
+
+  public String modality() {
+    return modality;
+  }
+
+  @Nullable
+  public String mimeType() {
+    return mimeType;
+  }
+
+  public String uri() {
+    return uri;
+  }
 
   @Override
   public String type() {
     return "uri";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof UriPart)) return false;
+    UriPart that = (UriPart) o;
+    return Objects.equals(modality, that.modality)
+        && Objects.equals(mimeType, that.mimeType)
+        && Objects.equals(uri, that.uri);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(modality, mimeType, uri);
+  }
+
+  @Override
+  public String toString() {
+    return "UriPart[modality=" + modality + ", mimeType=" + mimeType + ", uri=" + uri + "]";
   }
 }

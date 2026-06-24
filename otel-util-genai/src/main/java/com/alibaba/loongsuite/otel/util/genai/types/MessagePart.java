@@ -16,9 +16,7 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
-public sealed interface MessagePart
-    permits TextPart, ReasoningPart, ToolCallRequestPart, ToolCallResponsePart,
-        ServerToolCallPart, ServerToolCallResponsePart, BlobPart, FilePart, UriPart, GenericPart {
+public interface MessagePart {
 
   String type();
 }

@@ -31,6 +31,7 @@ import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -262,7 +263,7 @@ public final class GenAiTelemetryHandler {
   public AgentInvocation invokeLocalAgent(
       String provider, @Nullable String requestModel, @Nullable String agentName) {
     String spanName = agentName != null ? "invoke_agent " + agentName : "invoke_agent";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.INTERNAL)
@@ -293,7 +294,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String serverAddress,
       @Nullable Integer serverPort) {
     String spanName = agentName != null ? "invoke_agent " + agentName : "invoke_agent";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.CLIENT)
@@ -357,7 +358,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String serverAddress,
       @Nullable Integer serverPort) {
     String spanName = dataSourceId != null ? "retrieval " + dataSourceId : "retrieval";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.CLIENT)
@@ -408,7 +409,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String serverAddress,
       @Nullable Integer serverPort) {
     String spanName = agentName != null ? "create_agent " + agentName : "create_agent";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.CLIENT)
@@ -547,8 +548,8 @@ public final class GenAiTelemetryHandler {
       inv.stop();
     } catch (Throwable t) {
       inv.fail(t);
-      if (t instanceof RuntimeException re) throw re;
-      if (t instanceof Error e) throw e;
+      if (t instanceof RuntimeException) throw (RuntimeException) t;
+      if (t instanceof Error) throw (Error) t;
       throw new RuntimeException(t);
     }
   }
@@ -594,9 +595,10 @@ public final class GenAiTelemetryHandler {
       GenAiInvocation invocation,
       Attributes metricAttrs,
       Context ctx) {
-    if (!(invocation instanceof StreamMetricsCapable streamCapable)) {
+    if (!(invocation instanceof StreamMetricsCapable)) {
       return;
     }
+    StreamMetricsCapable streamCapable = (StreamMetricsCapable) invocation;
     Double ttfc = streamCapable.getTimeToFirstChunk();
     if (ttfc != null) {
       metricsRecorder.recordTimeToFirstChunk(ttfc, metricAttrs, ctx);
@@ -614,12 +616,12 @@ public final class GenAiTelemetryHandler {
    * Python ordering: metrics → create event → hook → emit event.
    */
   void finalizeCompletion(GenAiInvocation invocation) {
-    if (invocation instanceof InferenceInvocation inf) {
-      finalizeInferenceCompletion(inf);
-    } else if (invocation instanceof AgentInvocation agent) {
-      invokeAgentCompletionHook(agent);
-    } else if (invocation instanceof WorkflowInvocation workflow) {
-      completionHook.onCompletion(DefaultCompletionHookContext.forWorkflow(workflow, null));
+    if (invocation instanceof InferenceInvocation) {
+      finalizeInferenceCompletion((InferenceInvocation) invocation);
+    } else if (invocation instanceof AgentInvocation) {
+      invokeAgentCompletionHook((AgentInvocation) invocation);
+    } else if (invocation instanceof WorkflowInvocation) {
+      completionHook.onCompletion(DefaultCompletionHookContext.forWorkflow((WorkflowInvocation) invocation, null));
     }
   }
 

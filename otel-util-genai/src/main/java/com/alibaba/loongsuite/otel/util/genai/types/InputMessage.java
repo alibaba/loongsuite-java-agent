@@ -17,5 +17,41 @@
 package com.alibaba.loongsuite.otel.util.genai.types;
 
 import java.util.List;
+import java.util.Objects;
 
-public record InputMessage(String role, List<MessagePart> parts) {}
+public final class InputMessage {
+
+  private final String role;
+  private final List<MessagePart> parts;
+
+  public InputMessage(String role, List<MessagePart> parts) {
+    this.role = role;
+    this.parts = parts;
+  }
+
+  public String role() {
+    return role;
+  }
+
+  public List<MessagePart> parts() {
+    return parts;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof InputMessage)) return false;
+    InputMessage that = (InputMessage) o;
+    return Objects.equals(role, that.role) && Objects.equals(parts, that.parts);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(role, parts);
+  }
+
+  @Override
+  public String toString() {
+    return "InputMessage[role=" + role + ", parts=" + parts + "]";
+  }
+}

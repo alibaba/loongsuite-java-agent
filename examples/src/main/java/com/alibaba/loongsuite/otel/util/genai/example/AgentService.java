@@ -21,7 +21,7 @@ import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
-import java.util.List;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -49,24 +49,41 @@ public class AgentService {
       inv.setAgentId("agent-" + agentName);
       inv.setAgentDescription("Example agent: " + agentName);
       inv.setInputMessages(
-          List.of(new InputMessage("user", List.of(new TextPart(task)))));
+          Collections.singletonList(
+              new InputMessage("user", Collections.singletonList(new TextPart(task)))));
 
       ChatService.ChatResponse llmResponse = chatService.chat(task);
 
       inv.setOutputMessages(
-          List.of(
+          Collections.singletonList(
               new OutputMessage(
                   "assistant",
-                  List.of(new TextPart(llmResponse.content())),
+                  Collections.singletonList(new TextPart(llmResponse.getContent())),
                   "stop")));
-      inv.setInputTokens(llmResponse.inputTokens());
-      inv.setOutputTokens(llmResponse.outputTokens());
+      inv.setInputTokens(llmResponse.getInputTokens());
+      inv.setOutputTokens(llmResponse.getOutputTokens());
 
-      return new AgentResponse(agentName, llmResponse.content(),
-          llmResponse.inputTokens(), llmResponse.outputTokens());
+      return new AgentResponse(agentName, llmResponse.getContent(),
+          llmResponse.getInputTokens(), llmResponse.getOutputTokens());
     }
   }
 
-  public record AgentResponse(
-      String agentName, String content, long inputTokens, long outputTokens) {}
+  public static class AgentResponse {
+    private final String agentName;
+    private final String content;
+    private final long inputTokens;
+    private final long outputTokens;
+
+    public AgentResponse(String agentName, String content, long inputTokens, long outputTokens) {
+      this.agentName = agentName;
+      this.content = content;
+      this.inputTokens = inputTokens;
+      this.outputTokens = outputTokens;
+    }
+
+    public String getAgentName() { return agentName; }
+    public String getContent() { return content; }
+    public long getInputTokens() { return inputTokens; }
+    public long getOutputTokens() { return outputTokens; }
+  }
 }

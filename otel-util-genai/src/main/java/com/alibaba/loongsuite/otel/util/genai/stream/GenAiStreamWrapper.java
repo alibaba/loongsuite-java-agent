@@ -116,7 +116,8 @@ public abstract class GenAiStreamWrapper<T> implements Iterator<T>, AutoCloseabl
       finished = true;
       onStreamEnd();
     }
-    if (delegate instanceof AutoCloseable ac) {
+    if (delegate instanceof AutoCloseable) {
+      AutoCloseable ac = (AutoCloseable) delegate;
       try {
         ac.close();
       } catch (Exception ignored) {

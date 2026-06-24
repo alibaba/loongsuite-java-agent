@@ -16,13 +16,56 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
-public record FilePart(String modality, @Nullable String mimeType, String fileId)
-    implements MessagePart {
+public final class FilePart implements MessagePart {
+
+  private final String modality;
+  @Nullable private final String mimeType;
+  private final String fileId;
+
+  public FilePart(String modality, @Nullable String mimeType, String fileId) {
+    this.modality = modality;
+    this.mimeType = mimeType;
+    this.fileId = fileId;
+  }
+
+  public String modality() {
+    return modality;
+  }
+
+  @Nullable
+  public String mimeType() {
+    return mimeType;
+  }
+
+  public String fileId() {
+    return fileId;
+  }
 
   @Override
   public String type() {
     return "file";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof FilePart)) return false;
+    FilePart that = (FilePart) o;
+    return Objects.equals(modality, that.modality)
+        && Objects.equals(mimeType, that.mimeType)
+        && Objects.equals(fileId, that.fileId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(modality, mimeType, fileId);
+  }
+
+  @Override
+  public String toString() {
+    return "FilePart[modality=" + modality + ", mimeType=" + mimeType + ", fileId=" + fileId + "]";
   }
 }

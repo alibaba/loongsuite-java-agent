@@ -64,7 +64,8 @@ public final class CompletionHookLoader {
     try {
       Class<?> clazz = Class.forName(hookName);
       Object instance = clazz.getDeclaredConstructor().newInstance();
-      if (instance instanceof CompletionHook ch) {
+      if (instance instanceof CompletionHook) {
+        CompletionHook ch = (CompletionHook) instance;
         logger.fine(() -> "Loaded CompletionHook via reflection: " + hookName);
         return ch;
       }

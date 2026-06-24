@@ -16,10 +16,40 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
-public record GenericPart(Object value) implements MessagePart {
+import java.util.Objects;
+
+public final class GenericPart implements MessagePart {
+
+  private final Object value;
+
+  public GenericPart(Object value) {
+    this.value = value;
+  }
+
+  public Object value() {
+    return value;
+  }
 
   @Override
   public String type() {
     return "generic";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof GenericPart)) return false;
+    GenericPart that = (GenericPart) o;
+    return Objects.equals(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
+
+  @Override
+  public String toString() {
+    return "GenericPart[value=" + value + "]";
   }
 }

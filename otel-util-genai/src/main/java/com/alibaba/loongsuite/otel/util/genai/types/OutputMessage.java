@@ -17,5 +17,55 @@
 package com.alibaba.loongsuite.otel.util.genai.types;
 
 import java.util.List;
+import java.util.Objects;
 
-public record OutputMessage(String role, List<MessagePart> parts, String finishReason) {}
+public final class OutputMessage {
+
+  private final String role;
+  private final List<MessagePart> parts;
+  private final String finishReason;
+
+  public OutputMessage(String role, List<MessagePart> parts, String finishReason) {
+    this.role = role;
+    this.parts = parts;
+    this.finishReason = finishReason;
+  }
+
+  public String role() {
+    return role;
+  }
+
+  public List<MessagePart> parts() {
+    return parts;
+  }
+
+  public String finishReason() {
+    return finishReason;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof OutputMessage)) return false;
+    OutputMessage that = (OutputMessage) o;
+    return Objects.equals(role, that.role)
+        && Objects.equals(parts, that.parts)
+        && Objects.equals(finishReason, that.finishReason);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(role, parts, finishReason);
+  }
+
+  @Override
+  public String toString() {
+    return "OutputMessage[role="
+        + role
+        + ", parts="
+        + parts
+        + ", finishReason="
+        + finishReason
+        + "]";
+  }
+}

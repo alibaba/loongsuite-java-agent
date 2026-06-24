@@ -56,7 +56,7 @@ public class GenAiConfig {
   public OpenAIClient openAIClient(
       @Value("${genai.api-key}") String apiKey,
       @Value("${genai.base-url}") String baseUrl) {
-    if (apiKey == null || apiKey.isBlank()) {
+    if (apiKey == null || apiKey.trim().isEmpty()) {
       throw new IllegalStateException(
           "genai.api-key is not set. Provide it via:\n"
               + "  -Dgenai.api-key=sk-xxx\n"
@@ -82,12 +82,14 @@ public class GenAiConfig {
 
   private static void bridgeOtelProperties(Environment environment) {
     Set<String> otelKeys = new LinkedHashSet<>();
-    if (environment instanceof AbstractEnvironment abstractEnv) {
+    if (environment instanceof AbstractEnvironment) {
+      AbstractEnvironment abstractEnv = (AbstractEnvironment) environment;
       abstractEnv
           .getPropertySources()
           .forEach(
               ps -> {
-                if (ps instanceof MapPropertySource mps) {
+                if (ps instanceof MapPropertySource) {
+                  MapPropertySource mps = (MapPropertySource) ps;
                   for (String name : mps.getPropertyNames()) {
                     if (name.startsWith("otel.")) {
                       otelKeys.add(name);
@@ -99,7 +101,7 @@ public class GenAiConfig {
 
     for (String key : otelKeys) {
       String resolved = environment.getProperty(key);
-      if (resolved != null && !resolved.isBlank() && System.getProperty(key) == null) {
+      if (resolved != null && !resolved.trim().isEmpty() && System.getProperty(key) == null) {
         System.setProperty(key, resolved);
       }
     }

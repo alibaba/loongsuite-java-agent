@@ -19,6 +19,7 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 import com.alibaba.loongsuite.otel.util.genai.CreateAgentInvocation;
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,12 +47,28 @@ public class CreateAgentService {
       inv.setAgentId(agentId);
       inv.setAgentDescription(description);
       inv.setAgentVersion("1.0.0");
-      inv.setSystemInstruction(List.of(new TextPart(instructions)));
+      inv.setSystemInstruction(Collections.singletonList(new TextPart(instructions)));
 
       return new CreateAgentResponse(agentId, agentName, description, model);
     }
   }
 
-  public record CreateAgentResponse(
-      String agentId, String name, String description, String model) {}
+  public static class CreateAgentResponse {
+    private final String agentId;
+    private final String name;
+    private final String description;
+    private final String model;
+
+    public CreateAgentResponse(String agentId, String name, String description, String model) {
+      this.agentId = agentId;
+      this.name = name;
+      this.description = description;
+      this.model = model;
+    }
+
+    public String getAgentId() { return agentId; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public String getModel() { return model; }
+  }
 }

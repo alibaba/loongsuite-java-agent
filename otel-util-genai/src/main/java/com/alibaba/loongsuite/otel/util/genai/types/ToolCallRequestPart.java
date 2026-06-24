@@ -16,13 +16,56 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
-public record ToolCallRequestPart(String name, @Nullable String id, Object arguments)
-    implements MessagePart {
+public final class ToolCallRequestPart implements MessagePart {
+
+  private final String name;
+  @Nullable private final String id;
+  private final Object arguments;
+
+  public ToolCallRequestPart(String name, @Nullable String id, Object arguments) {
+    this.name = name;
+    this.id = id;
+    this.arguments = arguments;
+  }
+
+  public String name() {
+    return name;
+  }
+
+  @Nullable
+  public String id() {
+    return id;
+  }
+
+  public Object arguments() {
+    return arguments;
+  }
 
   @Override
   public String type() {
     return "tool_call";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ToolCallRequestPart)) return false;
+    ToolCallRequestPart that = (ToolCallRequestPart) o;
+    return Objects.equals(name, that.name)
+        && Objects.equals(id, that.id)
+        && Objects.equals(arguments, that.arguments);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, id, arguments);
+  }
+
+  @Override
+  public String toString() {
+    return "ToolCallRequestPart[name=" + name + ", id=" + id + ", arguments=" + arguments + "]";
   }
 }
