@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode;
+
 import org.junit.jupiter.api.Test;
 
 class GenAiConfigUtilTest {

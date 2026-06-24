@@ -21,15 +21,18 @@ import static io.opentelemetry.semconv.incubating.ServerIncubatingAttributes.SER
 import static io.opentelemetry.semconv.incubating.ServerIncubatingAttributes.SERVER_PORT;
 
 import com.alibaba.loongsuite.otel.util.genai.types.RetrievalDocument;
+
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import org.jspecify.annotations.Nullable;
 
 /**

@@ -16,13 +16,14 @@
 
 package com.alibaba.loongsuite.otel.util.genai;
 
+import io.opentelemetry.api.incubator.metrics.ExtendedDoubleHistogramBuilder;
+import io.opentelemetry.api.incubator.metrics.ExtendedLongHistogramBuilder;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.DoubleHistogramBuilder;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.LongHistogramBuilder;
-import io.opentelemetry.api.incubator.metrics.ExtendedDoubleHistogramBuilder;
-import io.opentelemetry.api.incubator.metrics.ExtendedLongHistogramBuilder;
 import io.opentelemetry.api.metrics.Meter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -34,8 +35,7 @@ public final class GenAiMetricsHelper {
 
   private static final List<Double> DURATION_BUCKETS =
       Arrays.asList(
-          0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96,
-          81.92);
+          0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92);
 
   private static final List<Long> TOKEN_BUCKETS =
       Arrays.asList(

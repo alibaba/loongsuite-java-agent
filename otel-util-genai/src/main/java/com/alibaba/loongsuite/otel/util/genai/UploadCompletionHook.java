@@ -21,7 +21,9 @@ import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.trace.Span;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,15 +42,16 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jspecify.annotations.Nullable;
 
 /**
  * Completion hook that uploads GenAI content to external storage and stamps {@code *_ref}
  * attributes on spans and events.
  *
- * <p>Activated by setting {@link GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK}
- * to {@code upload} and configuring {@link
- * GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH}.
+ * <p>Activated by setting {@link
+ * GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK} to {@code upload} and
+ * configuring {@link GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH}.
  */
 public final class UploadCompletionHook implements CompletionHook {
 

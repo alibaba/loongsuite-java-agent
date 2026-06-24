@@ -21,6 +21,7 @@ import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.openai.client.OpenAIClient;
 import com.openai.models.embeddings.CreateEmbeddingResponse;
 import com.openai.models.embeddings.EmbeddingCreateParams;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -49,10 +50,7 @@ public class EmbeddingService {
   public EmbeddingResponse embed(String input, String model) {
     try (EmbeddingInvocation inv = handler.embedding(provider, model, serverAddress, serverPort)) {
       EmbeddingCreateParams params =
-          EmbeddingCreateParams.builder()
-              .model(model)
-              .input(input)
-              .build();
+          EmbeddingCreateParams.builder().model(model).input(input).build();
 
       CreateEmbeddingResponse response = openAIClient.embeddings().create(params);
 
@@ -62,10 +60,7 @@ public class EmbeddingService {
       inv.setDimensionCount((long) dimensions);
 
       return new EmbeddingResponse(
-          response.model(),
-          dimensions,
-          response.usage().promptTokens(),
-          response.data().size());
+          response.model(), dimensions, response.usage().promptTokens(), response.data().size());
     }
   }
 
@@ -82,9 +77,20 @@ public class EmbeddingService {
       this.vectorCount = vectorCount;
     }
 
-    public String getModel() { return model; }
-    public int getDimensions() { return dimensions; }
-    public long getInputTokens() { return inputTokens; }
-    public int getVectorCount() { return vectorCount; }
+    public String getModel() {
+      return model;
+    }
+
+    public int getDimensions() {
+      return dimensions;
+    }
+
+    public long getInputTokens() {
+      return inputTokens;
+    }
+
+    public int getVectorCount() {
+      return vectorCount;
+    }
   }
 }

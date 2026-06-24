@@ -21,9 +21,11 @@ import com.alibaba.loongsuite.otel.util.genai.WorkflowInvocation;
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -54,15 +56,17 @@ public class WorkflowService {
       steps.add(new StepResult("analyze", analysis.getContent()));
 
       // Step 2: execute a tool based on the analysis
-      ToolService.ToolResponse toolResult =
-          toolService.executeTool("get_time", "{}");
+      ToolService.ToolResponse toolResult = toolService.executeTool("get_time", "{}");
       steps.add(new StepResult("tool:" + toolResult.getTool(), toolResult.getResult()));
 
       // Step 3: synthesize final answer via LLM
       String synthesisPrompt =
-          "Based on the analysis: [" + analysis.getContent()
-              + "] and tool result: [" + toolResult.getResult()
-              + "], provide a final answer to: " + userInput;
+          "Based on the analysis: ["
+              + analysis.getContent()
+              + "] and tool result: ["
+              + toolResult.getResult()
+              + "], provide a final answer to: "
+              + userInput;
       ChatService.ChatResponse synthesis = chatService.chat(synthesisPrompt);
       steps.add(new StepResult("synthesize", synthesis.getContent()));
 
@@ -86,8 +90,13 @@ public class WorkflowService {
       this.output = output;
     }
 
-    public String getStep() { return step; }
-    public String getOutput() { return output; }
+    public String getStep() {
+      return step;
+    }
+
+    public String getOutput() {
+      return output;
+    }
   }
 
   public static class WorkflowResponse {
@@ -101,8 +110,16 @@ public class WorkflowService {
       this.steps = steps;
     }
 
-    public String getWorkflow() { return workflow; }
-    public String getFinalAnswer() { return finalAnswer; }
-    public List<StepResult> getSteps() { return steps; }
+    public String getWorkflow() {
+      return workflow;
+    }
+
+    public String getFinalAnswer() {
+      return finalAnswer;
+    }
+
+    public List<StepResult> getSteps() {
+      return steps;
+    }
   }
 }

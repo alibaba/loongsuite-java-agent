@@ -22,12 +22,15 @@ import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Scope;
+
 import java.util.Collections;
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -221,8 +224,7 @@ public final class AgentInvocation extends GenAiInvocation {
     return remote;
   }
 
-  @Nullable
-  String getAgentName() {
+  @Nullable String getAgentName() {
     return agentName;
   }
 
@@ -318,8 +320,7 @@ public final class AgentInvocation extends GenAiInvocation {
         contentBuilder, inputMessages, outputMessages, systemInstruction, toolDefinitions, true);
     span.setAllAttributes(contentBuilder.build());
 
-    List<String> resolvedFinishReasons =
-        GenAiFinishReasons.resolve(finishReasons, outputMessages);
+    List<String> resolvedFinishReasons = GenAiFinishReasons.resolve(finishReasons, outputMessages);
     if (resolvedFinishReasons != null) {
       span.setAttribute(GEN_AI_RESPONSE_FINISH_REASONS, resolvedFinishReasons);
     }

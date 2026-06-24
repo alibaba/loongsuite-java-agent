@@ -21,18 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alibaba.loongsuite.otel.util.genai.stream.GenAiStreamWrapper;
-import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
+
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -66,13 +72,14 @@ class RemainingGapsTest {
   void finishReasonsDerivedFromOutputMessages() {
     try (InferenceInvocation inv = handler.inference("openai", "gpt-4o")) {
       inv.setOutputMessages(
-          List.of(
-              new OutputMessage("assistant", List.of(new TextPart("hi")), "stop"),
-              new OutputMessage("assistant", List.of(new TextPart("bye")), "length")));
+          Arrays.asList(
+              new OutputMessage("assistant", Collections.singletonList(new TextPart("hi")), "stop"),
+              new OutputMessage(
+                  "assistant", Collections.singletonList(new TextPart("bye")), "length")));
     }
-    var attrs = spanExporter.getFinishedSpanItems().get(0).getAttributes();
+    Attributes attrs = spanExporter.getFinishedSpanItems().get(0).getAttributes();
     assertEquals(
-        List.of("stop", "length"),
+        Arrays.asList("stop", "length"),
         attrs.get(AttributeKey.stringArrayKey("gen_ai.response.finish_reasons")));
   }
 
@@ -83,7 +90,7 @@ class RemainingGapsTest {
       inv.setCacheCreationInputTokens(5L);
       inv.setCacheReadInputTokens(10L);
     }
-    var attrs = spanExporter.getFinishedSpanItems().get(0).getAttributes();
+    Attributes attrs = spanExporter.getFinishedSpanItems().get(0).getAttributes();
     assertEquals(80L, attrs.get(AttributeKey.longKey("gen_ai.usage.output_tokens")));
     assertEquals(null, attrs.get(AttributeKey.longKey("gen_ai.usage.reasoning.output_tokens")));
     assertEquals(5L, attrs.get(AttributeKey.longKey("gen_ai.usage.cache_creation.input_tokens")));
@@ -106,7 +113,7 @@ class RemainingGapsTest {
                       throw new RuntimeException("boom");
                     }));
     assertEquals("boom", thrown.getMessage());
-    var span = spanExporter.getFinishedSpanItems().get(0);
+    SpanData span = spanExporter.getFinishedSpanItems().get(0);
     assertEquals(
         RuntimeException.class.getSimpleName(),
         span.getAttributes().get(AttributeKey.stringKey("error.type")));
@@ -116,9 +123,9 @@ class RemainingGapsTest {
   void streamWrapperRecordsTimingOnInvocation() {
     try (InferenceInvocation inv = handler.inference("openai", "gpt-4o")) {
       inv.setStream(true);
-      Iterator<String> iterator = List.of("a", "b", "c").iterator();
+      Iterator<String> iterator = Arrays.asList("a", "b", "c").iterator();
       GenAiStreamWrapper<String> wrapper =
-          new GenAiStreamWrapper<>(iterator, inv) {
+          new GenAiStreamWrapper<String>(iterator, inv) {
             @Override
             protected void processChunk(String chunk) {}
 
@@ -137,7 +144,7 @@ class RemainingGapsTest {
       assertTrue(inv.getTimeToFirstChunk() != null && inv.getTimeToFirstChunk() >= 0);
     }
 
-    var attrs = spanExporter.getFinishedSpanItems().get(0).getAttributes();
+    Attributes attrs = spanExporter.getFinishedSpanItems().get(0).getAttributes();
     assertTrue(attrs.get(AttributeKey.doubleKey("gen_ai.response.time_to_first_chunk")) != null);
     assertEquals(true, attrs.get(AttributeKey.booleanKey("gen_ai.request.stream")));
   }

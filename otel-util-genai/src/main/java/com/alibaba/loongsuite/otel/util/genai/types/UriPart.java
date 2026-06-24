@@ -17,6 +17,7 @@
 package com.alibaba.loongsuite.otel.util.genai.types;
 
 import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
 public final class UriPart implements MessagePart {

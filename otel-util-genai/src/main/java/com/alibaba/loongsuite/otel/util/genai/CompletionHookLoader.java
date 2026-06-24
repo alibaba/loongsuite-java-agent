@@ -38,8 +38,9 @@ public final class CompletionHookLoader {
    * the specified class cannot be found.
    */
   public static CompletionHook load() {
-    String hookName = GenAiConfigUtil.getConfigProperty(
-        GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK);
+    String hookName =
+        GenAiConfigUtil.getConfigProperty(
+            GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK);
     if (hookName == null || hookName.isEmpty()) {
       return NoOpCompletionHook.INSTANCE;
     }
@@ -70,10 +71,7 @@ public final class CompletionHookLoader {
         return ch;
       }
       logger.warning(
-          () ->
-              "Class "
-                  + hookName
-                  + " does not implement CompletionHook, using no-op fallback");
+          () -> "Class " + hookName + " does not implement CompletionHook, using no-op fallback");
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to load CompletionHook: " + hookName, e);
     }

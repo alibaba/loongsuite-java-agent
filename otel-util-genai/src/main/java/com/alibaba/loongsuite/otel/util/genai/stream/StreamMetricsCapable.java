@@ -17,6 +17,7 @@
 package com.alibaba.loongsuite.otel.util.genai.stream;
 
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /** Invocation that collects streaming timing for TTFC and inter-chunk metrics. */
@@ -26,8 +27,7 @@ public interface StreamMetricsCapable {
 
   void addInterChunkDelay(double seconds);
 
-  @Nullable
-  Double getTimeToFirstChunk();
+  @Nullable Double getTimeToFirstChunk();
 
   List<Double> getInterChunkDelays();
 }

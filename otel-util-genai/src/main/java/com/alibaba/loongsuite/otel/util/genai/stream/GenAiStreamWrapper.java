@@ -17,6 +17,7 @@
 package com.alibaba.loongsuite.otel.util.genai.stream;
 
 import java.util.Iterator;
+
 import org.jspecify.annotations.Nullable;
 
 /**

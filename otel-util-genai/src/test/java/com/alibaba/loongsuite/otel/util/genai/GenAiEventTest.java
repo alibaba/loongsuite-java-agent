@@ -30,6 +30,7 @@ import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -96,8 +97,7 @@ class GenAiEventTest {
     assertEquals("timeout", event.getAttributes().get(AttributeKey.stringKey("error.type")));
     assertEquals(
         "chatcmpl-1", event.getAttributes().get(AttributeKey.stringKey("gen_ai.response.id")));
-    assertNull(
-        event.getAttributes().get(AttributeKey.doubleKey("gen_ai.evaluation.score.value")));
+    assertNull(event.getAttributes().get(AttributeKey.doubleKey("gen_ai.evaluation.score.value")));
   }
 
   @Test
@@ -106,7 +106,8 @@ class GenAiEventTest {
 
     LogRecordData event = findEvent("gen_ai.evaluation.result");
     assertNull(event.getAttributes().get(AttributeKey.stringKey("error.type")));
-    assertEquals(0.9, event.getAttributes().get(AttributeKey.doubleKey("gen_ai.evaluation.score.value")));
+    assertEquals(
+        0.9, event.getAttributes().get(AttributeKey.doubleKey("gen_ai.evaluation.score.value")));
   }
 
   private LogRecordData findEvent(String eventName) {

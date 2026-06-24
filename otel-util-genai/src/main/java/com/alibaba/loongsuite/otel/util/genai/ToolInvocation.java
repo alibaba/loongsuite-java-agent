@@ -24,6 +24,7 @@ import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -92,8 +93,7 @@ public final class ToolInvocation extends GenAiInvocation {
     return name;
   }
 
-  @Nullable
-  String getToolCallId() {
+  @Nullable String getToolCallId() {
     return toolCallId;
   }
 

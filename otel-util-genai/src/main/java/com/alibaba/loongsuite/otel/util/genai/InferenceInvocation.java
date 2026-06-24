@@ -25,15 +25,18 @@ import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -244,13 +247,11 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
     return toolDefinitions;
   }
 
-  @Nullable
-  String getResponseModel() {
+  @Nullable String getResponseModel() {
     return responseModel;
   }
 
-  @Nullable
-  String getResponseId() {
+  @Nullable String getResponseId() {
     return responseId;
   }
 
@@ -329,8 +330,7 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
     if (responseId != null) {
       span.setAttribute(GEN_AI_RESPONSE_ID, responseId);
     }
-    List<String> resolvedFinishReasons =
-        GenAiFinishReasons.resolve(finishReasons, outputMessages);
+    List<String> resolvedFinishReasons = GenAiFinishReasons.resolve(finishReasons, outputMessages);
     if (resolvedFinishReasons != null) {
       span.setAttribute(GEN_AI_RESPONSE_FINISH_REASONS, resolvedFinishReasons);
     }
@@ -382,8 +382,8 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
   }
 
   /**
-   * Builds the full attribute set for an inference event, mirroring Python {@code
-   * _get_attributes() + _get_message_attributes(for_span=False)}.
+   * Builds the full attribute set for an inference event, mirroring Python {@code _get_attributes()
+   * + _get_message_attributes(for_span=False)}.
    */
   Attributes buildEventAttributes(@Nullable String errorType, Map<String, String> extraAttributes) {
     AttributesBuilder builder = Attributes.builder();
@@ -440,8 +440,7 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
     if (responseId != null) {
       builder.put(GEN_AI_RESPONSE_ID, responseId);
     }
-    List<String> resolvedFinishReasons =
-        GenAiFinishReasons.resolve(finishReasons, outputMessages);
+    List<String> resolvedFinishReasons = GenAiFinishReasons.resolve(finishReasons, outputMessages);
     if (resolvedFinishReasons != null) {
       builder.put(GEN_AI_RESPONSE_FINISH_REASONS, resolvedFinishReasons);
     }

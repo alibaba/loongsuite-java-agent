@@ -21,7 +21,9 @@ import static io.opentelemetry.semconv.incubating.GenAiIncubatingAttributes.*;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Scope;
+
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -80,8 +82,7 @@ public final class EmbeddingInvocation extends GenAiInvocation {
   // Package-private getters
   // ---------------------------------------------------------------------------
 
-  @Nullable
-  String getResponseModel() {
+  @Nullable String getResponseModel() {
     return responseModel;
   }
 

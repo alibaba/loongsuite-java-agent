@@ -19,11 +19,14 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
+
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,8 +57,7 @@ public class GenAiConfig {
 
   @Bean
   public OpenAIClient openAIClient(
-      @Value("${genai.api-key}") String apiKey,
-      @Value("${genai.base-url}") String baseUrl) {
+      @Value("${genai.api-key}") String apiKey, @Value("${genai.base-url}") String baseUrl) {
     if (apiKey == null || apiKey.trim().isEmpty()) {
       throw new IllegalStateException(
           "genai.api-key is not set. Provide it via:\n"

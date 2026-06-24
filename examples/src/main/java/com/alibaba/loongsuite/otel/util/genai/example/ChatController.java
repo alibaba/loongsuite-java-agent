@@ -18,6 +18,7 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 
 import java.util.Collections;
 import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -108,7 +109,8 @@ public class ChatController {
     if (isBlank(request.getQuery())) {
       return badRequest("query is required");
     }
-    String dataSourceId = request.getDataSourceId() != null ? request.getDataSourceId() : "default-index";
+    String dataSourceId =
+        request.getDataSourceId() != null ? request.getDataSourceId() : "default-index";
     int topK = request.getTopK() != null ? request.getTopK() : 5;
     return ResponseEntity.ok(retrievalService.retrieve(request.getQuery(), dataSourceId, topK));
   }
@@ -120,76 +122,170 @@ public class ChatController {
       return badRequest("name is required");
     }
     String description = request.getDescription() != null ? request.getDescription() : "";
-    String instructions = request.getInstructions() != null ? request.getInstructions() : "You are a helpful assistant.";
-    return ResponseEntity.ok(createAgentService.create(request.getName(), description, instructions));
+    String instructions =
+        request.getInstructions() != null
+            ? request.getInstructions()
+            : "You are a helpful assistant.";
+    return ResponseEntity.ok(
+        createAgentService.create(request.getName(), description, instructions));
   }
 
   // --- Request DTOs ---
 
   public static class ChatRequest {
     private String message;
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
+
+    public String getMessage() {
+      return message;
+    }
+
+    public void setMessage(String message) {
+      this.message = message;
+    }
   }
 
   public static class EmbeddingRequest {
     private String input;
     private String model;
-    public String getInput() { return input; }
-    public void setInput(String input) { this.input = input; }
-    public String getModel() { return model; }
-    public void setModel(String model) { this.model = model; }
+
+    public String getInput() {
+      return input;
+    }
+
+    public void setInput(String input) {
+      this.input = input;
+    }
+
+    public String getModel() {
+      return model;
+    }
+
+    public void setModel(String model) {
+      this.model = model;
+    }
   }
 
   public static class ToolRequest {
     private String name;
     private String arguments;
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getArguments() { return arguments; }
-    public void setArguments(String arguments) { this.arguments = arguments; }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getArguments() {
+      return arguments;
+    }
+
+    public void setArguments(String arguments) {
+      this.arguments = arguments;
+    }
   }
 
   public static class AgentRequest {
     private String name;
     private String task;
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getTask() { return task; }
-    public void setTask(String task) { this.task = task; }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getTask() {
+      return task;
+    }
+
+    public void setTask(String task) {
+      this.task = task;
+    }
   }
 
   public static class WorkflowRequest {
     private String name;
     private String input;
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getInput() { return input; }
-    public void setInput(String input) { this.input = input; }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getInput() {
+      return input;
+    }
+
+    public void setInput(String input) {
+      this.input = input;
+    }
   }
 
   public static class RetrievalRequest {
     private String query;
     private String dataSourceId;
     private Integer topK;
-    public String getQuery() { return query; }
-    public void setQuery(String query) { this.query = query; }
-    public String getDataSourceId() { return dataSourceId; }
-    public void setDataSourceId(String dataSourceId) { this.dataSourceId = dataSourceId; }
-    public Integer getTopK() { return topK; }
-    public void setTopK(Integer topK) { this.topK = topK; }
+
+    public String getQuery() {
+      return query;
+    }
+
+    public void setQuery(String query) {
+      this.query = query;
+    }
+
+    public String getDataSourceId() {
+      return dataSourceId;
+    }
+
+    public void setDataSourceId(String dataSourceId) {
+      this.dataSourceId = dataSourceId;
+    }
+
+    public Integer getTopK() {
+      return topK;
+    }
+
+    public void setTopK(Integer topK) {
+      this.topK = topK;
+    }
   }
 
   public static class CreateAgentRequest {
     private String name;
     private String description;
     private String instructions;
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public String getInstructions() { return instructions; }
-    public void setInstructions(String instructions) { this.instructions = instructions; }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getDescription() {
+      return description;
+    }
+
+    public void setDescription(String description) {
+      this.description = description;
+    }
+
+    public String getInstructions() {
+      return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+      this.instructions = instructions;
+    }
   }
 
   // --- Helpers ---

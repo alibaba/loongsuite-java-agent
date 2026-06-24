@@ -25,14 +25,18 @@ import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolCallRequestPart;
+
 import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.common.ValueType;
+
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
 class GenAiContentSerializerTest {
@@ -40,9 +44,9 @@ class GenAiContentSerializerTest {
   @Test
   void testSerializeTextMessages() {
     List<InputMessage> messages =
-        List.of(
+        Collections.singletonList(
             new InputMessage(
-                "user", List.of(new TextPart("Hello, how are you?"))));
+                "user", Collections.singletonList(new TextPart("Hello, how are you?"))));
 
     String json = GenAiContentSerializer.toJsonString(messages);
 
@@ -58,9 +62,9 @@ class GenAiContentSerializerTest {
   @Test
   void testSerializeMultipleMessages() {
     List<InputMessage> messages =
-        List.of(
-            new InputMessage("system", List.of(new TextPart("You are helpful."))),
-            new InputMessage("user", List.of(new TextPart("What is 2+2?"))));
+        Arrays.asList(
+            new InputMessage("system", Collections.singletonList(new TextPart("You are helpful."))),
+            new InputMessage("user", Collections.singletonList(new TextPart("What is 2+2?"))));
 
     String json = GenAiContentSerializer.toJsonString(messages);
 
@@ -73,9 +77,9 @@ class GenAiContentSerializerTest {
   @Test
   void testSerializeOutputMessages() {
     List<OutputMessage> messages =
-        List.of(
+        Collections.singletonList(
             new OutputMessage(
-                "assistant", List.of(new TextPart("The answer is 4.")), "stop"));
+                "assistant", Collections.singletonList(new TextPart("The answer is 4.")), "stop"));
 
     String json = GenAiContentSerializer.toJsonString(messages);
 
@@ -92,7 +96,7 @@ class GenAiContentSerializerTest {
     args.put("units", "celsius");
 
     ToolCallRequestPart toolCall = new ToolCallRequestPart("get_weather", "call_001", args);
-    List<ToolCallRequestPart> parts = List.of(toolCall);
+    List<ToolCallRequestPart> parts = Collections.singletonList(toolCall);
 
     String json = GenAiContentSerializer.toJsonString(parts);
 
@@ -110,7 +114,7 @@ class GenAiContentSerializerTest {
     String expectedBase64 = Base64.getEncoder().encodeToString(data);
 
     BlobPart blobPart = new BlobPart("image", "image/png", data);
-    List<BlobPart> parts = List.of(blobPart);
+    List<BlobPart> parts = Collections.singletonList(blobPart);
 
     String json = GenAiContentSerializer.toJsonString(parts);
 
@@ -122,9 +126,8 @@ class GenAiContentSerializerTest {
   @Test
   void testToMapList() {
     List<InputMessage> messages =
-        List.of(
-            new InputMessage(
-                "user", List.of(new TextPart("Hello"))));
+        Collections.singletonList(
+            new InputMessage("user", Collections.singletonList(new TextPart("Hello"))));
 
     List<Map<String, Object>> mapList = GenAiContentSerializer.toMapList(messages);
 
@@ -141,17 +144,15 @@ class GenAiContentSerializerTest {
 
     @SuppressWarnings("unchecked")
     Map<String, Object> partMap = (Map<String, Object>) parts.get(0);
-    // TextPart record has "content" as a record component; "type" is an interface method
-    // so only "content" appears in the map produced by recordToMap
     assertEquals("Hello", partMap.get("content"));
   }
 
   @Test
   void testToMapListMultiple() {
     List<InputMessage> messages =
-        List.of(
-            new InputMessage("user", List.of(new TextPart("First"))),
-            new InputMessage("assistant", List.of(new TextPart("Second"))));
+        Arrays.asList(
+            new InputMessage("user", Collections.singletonList(new TextPart("First"))),
+            new InputMessage("assistant", Collections.singletonList(new TextPart("Second"))));
 
     List<Map<String, Object>> mapList = GenAiContentSerializer.toMapList(messages);
     assertEquals(2, mapList.size());
@@ -168,14 +169,13 @@ class GenAiContentSerializerTest {
   @Test
   void testSerializeSpecialCharacters() {
     List<InputMessage> messages =
-        List.of(
+        Collections.singletonList(
             new InputMessage(
                 "user",
-                List.of(new TextPart("He said \"hello\" and\\then\nnewline"))));
+                Collections.singletonList(new TextPart("He said \"hello\" and\\then\nnewline"))));
 
     String json = GenAiContentSerializer.toJsonString(messages);
 
-    // Verify JSON escaping of double quotes, backslash, and newline
     assertTrue(json.contains("\\\"hello\\\""));
     assertTrue(json.contains("\\\\then"));
     assertTrue(json.contains("\\n"));
@@ -183,20 +183,17 @@ class GenAiContentSerializerTest {
 
   @Test
   void testSerializeTextPart() {
-    List<TextPart> parts = List.of(new TextPart("plain text"));
+    List<TextPart> parts = Collections.singletonList(new TextPart("plain text"));
 
     String json = GenAiContentSerializer.toJsonString(parts);
 
-    // TextPart record component is "content"; "type()" is an interface method,
-    // not a record component, so it is not serialized by the record serializer
     assertTrue(json.contains("\"content\""));
     assertTrue(json.contains("\"plain text\""));
   }
 
   @Test
   void testToMapListEmpty() {
-    List<Map<String, Object>> result =
-        GenAiContentSerializer.toMapList(Collections.emptyList());
+    List<Map<String, Object>> result = GenAiContentSerializer.toMapList(Collections.emptyList());
     assertNotNull(result);
     assertTrue(result.isEmpty());
   }
@@ -204,7 +201,8 @@ class GenAiContentSerializerTest {
   @Test
   void testToValueStructuredMessages() {
     List<InputMessage> messages =
-        List.of(new InputMessage("user", List.of(new TextPart("Hello"))));
+        Collections.singletonList(
+            new InputMessage("user", Collections.singletonList(new TextPart("Hello"))));
 
     Value<?> value = GenAiContentSerializer.toValue(messages);
 

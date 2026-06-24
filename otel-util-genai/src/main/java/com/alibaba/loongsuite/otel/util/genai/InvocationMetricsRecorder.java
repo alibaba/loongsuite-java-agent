@@ -28,6 +28,7 @@ public final class InvocationMetricsRecorder {
   private final LongHistogram tokenHistogram;
   private final DoubleHistogram timeToFirstChunkHistogram;
   private final DoubleHistogram timePerOutputChunkHistogram;
+
   public InvocationMetricsRecorder(Meter meter) {
     this.durationHistogram = GenAiMetricsHelper.createDurationHistogram(meter);
     this.tokenHistogram = GenAiMetricsHelper.createTokenHistogram(meter);
@@ -50,5 +51,4 @@ public final class InvocationMetricsRecorder {
   public void recordTimePerOutputChunk(double seconds, Attributes attributes, Context context) {
     timePerOutputChunkHistogram.record(seconds, attributes, context);
   }
-
 }

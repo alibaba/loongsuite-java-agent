@@ -19,10 +19,11 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.alibaba.loongsuite.otel.util.genai.RetrievalInvocation;
 import com.alibaba.loongsuite.otel.util.genai.types.RetrievalDocument;
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -79,9 +80,17 @@ public class RetrievalService {
       this.snippet = snippet;
     }
 
-    public String getId() { return id; }
-    public double getScore() { return score; }
-    public String getSnippet() { return snippet; }
+    public String getId() {
+      return id;
+    }
+
+    public double getScore() {
+      return score;
+    }
+
+    public String getSnippet() {
+      return snippet;
+    }
   }
 
   public static class RetrievalResponse {
@@ -95,8 +104,16 @@ public class RetrievalService {
       this.documents = documents;
     }
 
-    public String getDataSourceId() { return dataSourceId; }
-    public String getQuery() { return query; }
-    public List<DocumentResult> getDocuments() { return documents; }
+    public String getDataSourceId() {
+      return dataSourceId;
+    }
+
+    public String getQuery() {
+      return query;
+    }
+
+    public List<DocumentResult> getDocuments() {
+      return documents;
+    }
   }
 }

@@ -18,6 +18,7 @@ package com.alibaba.loongsuite.otel.util.genai.types;
 
 import java.util.Arrays;
 import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
 public final class BlobPart implements MessagePart {

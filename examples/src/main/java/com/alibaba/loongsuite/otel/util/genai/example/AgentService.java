@@ -21,7 +21,9 @@ import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
+
 import java.util.Collections;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -63,8 +65,11 @@ public class AgentService {
       inv.setInputTokens(llmResponse.getInputTokens());
       inv.setOutputTokens(llmResponse.getOutputTokens());
 
-      return new AgentResponse(agentName, llmResponse.getContent(),
-          llmResponse.getInputTokens(), llmResponse.getOutputTokens());
+      return new AgentResponse(
+          agentName,
+          llmResponse.getContent(),
+          llmResponse.getInputTokens(),
+          llmResponse.getOutputTokens());
     }
   }
 
@@ -81,9 +86,20 @@ public class AgentService {
       this.outputTokens = outputTokens;
     }
 
-    public String getAgentName() { return agentName; }
-    public String getContent() { return content; }
-    public long getInputTokens() { return inputTokens; }
-    public long getOutputTokens() { return outputTokens; }
+    public String getAgentName() {
+      return agentName;
+    }
+
+    public String getContent() {
+      return content;
+    }
+
+    public long getInputTokens() {
+      return inputTokens;
+    }
+
+    public long getOutputTokens() {
+      return outputTokens;
+    }
   }
 }

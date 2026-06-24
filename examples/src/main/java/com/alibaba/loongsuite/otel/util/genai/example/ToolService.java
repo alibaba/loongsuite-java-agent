@@ -18,10 +18,12 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.alibaba.loongsuite.otel.util.genai.ToolInvocation;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -30,11 +32,14 @@ public class ToolService {
   private final GenAiTelemetryHandler handler;
 
   private static final Map<String, String> MOCK_WEATHER;
+
   static {
     MOCK_WEATHER = new HashMap<>();
     MOCK_WEATHER.put("beijing", "{\"city\":\"Beijing\",\"temp\":\"28°C\",\"condition\":\"Sunny\"}");
-    MOCK_WEATHER.put("shanghai", "{\"city\":\"Shanghai\",\"temp\":\"32°C\",\"condition\":\"Cloudy\"}");
-    MOCK_WEATHER.put("hangzhou", "{\"city\":\"Hangzhou\",\"temp\":\"30°C\",\"condition\":\"Rainy\"}");
+    MOCK_WEATHER.put(
+        "shanghai", "{\"city\":\"Shanghai\",\"temp\":\"32°C\",\"condition\":\"Cloudy\"}");
+    MOCK_WEATHER.put(
+        "hangzhou", "{\"city\":\"Hangzhou\",\"temp\":\"30°C\",\"condition\":\"Rainy\"}");
   }
 
   public ToolService(GenAiTelemetryHandler handler) {
@@ -54,14 +59,17 @@ public class ToolService {
 
   private String dispatchTool(String toolName, String arguments) {
     switch (toolName) {
-      case "get_weather": {
-        String city = arguments.replaceAll(".*\"city\"\\s*:\\s*\"([^\"]+)\".*", "$1").toLowerCase();
-        return MOCK_WEATHER.getOrDefault(city,
-            "{\"city\":\"" + city + "\",\"temp\":\"25°C\",\"condition\":\"Unknown\"}");
-      }
+      case "get_weather":
+        {
+          String city =
+              arguments.replaceAll(".*\"city\"\\s*:\\s*\"([^\"]+)\".*", "$1").toLowerCase();
+          return MOCK_WEATHER.getOrDefault(
+              city, "{\"city\":\"" + city + "\",\"temp\":\"25°C\",\"condition\":\"Unknown\"}");
+        }
       case "get_time":
-        return "{\"time\":\"" +
-            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\"}";
+        return "{\"time\":\""
+            + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            + "\"}";
       default:
         return "{\"error\":\"Unknown tool: " + toolName + "\"}";
     }
@@ -78,8 +86,16 @@ public class ToolService {
       this.result = result;
     }
 
-    public String getTool() { return tool; }
-    public String getArguments() { return arguments; }
-    public String getResult() { return result; }
+    public String getTool() {
+      return tool;
+    }
+
+    public String getArguments() {
+      return arguments;
+    }
+
+    public String getResult() {
+      return result;
+    }
   }
 }

@@ -24,10 +24,11 @@ import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
 import com.openai.client.OpenAIClient;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
-import java.util.Arrays;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -135,7 +136,8 @@ public class ChatService {
     private final long inputTokens;
     private final long outputTokens;
 
-    public ChatResponse(String content, String model, String id, long inputTokens, long outputTokens) {
+    public ChatResponse(
+        String content, String model, String id, long inputTokens, long outputTokens) {
       this.content = content;
       this.model = model;
       this.id = id;
@@ -143,10 +145,24 @@ public class ChatService {
       this.outputTokens = outputTokens;
     }
 
-    public String getContent() { return content; }
-    public String getModel() { return model; }
-    public String getId() { return id; }
-    public long getInputTokens() { return inputTokens; }
-    public long getOutputTokens() { return outputTokens; }
+    public String getContent() {
+      return content;
+    }
+
+    public String getModel() {
+      return model;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public long getInputTokens() {
+      return inputTokens;
+    }
+
+    public long getOutputTokens() {
+      return outputTokens;
+    }
   }
 }

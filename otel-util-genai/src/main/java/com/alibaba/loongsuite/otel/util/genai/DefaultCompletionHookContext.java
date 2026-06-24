@@ -20,9 +20,12 @@ import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.trace.Span;
+
 import java.util.Collections;
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /**

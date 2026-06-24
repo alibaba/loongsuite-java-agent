@@ -18,8 +18,10 @@ package com.alibaba.loongsuite.otel.util.genai;
 
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.common.ValueType;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -34,7 +36,9 @@ public final class GenAiContentSerializer {
 
   private GenAiContentSerializer() {}
 
-  /** Converts a list of message/document objects to a structured {@link Value} for semconv attrs. */
+  /**
+   * Converts a list of message/document objects to a structured {@link Value} for semconv attrs.
+   */
   public static Value<?> toValue(List<?> items) {
     List<Value<?>> values = new ArrayList<>();
     for (Object item : items) {
@@ -263,9 +267,9 @@ public final class GenAiContentSerializer {
   }
 
   /**
-   * Injects the {@code type} field from interface methods ({@link MessagePart#type()},
-   * {@link ToolDefinition#type()}) which are not instance fields but should appear in
-   * serialized output to match Python's {@code dataclasses.asdict()} behavior.
+   * Injects the {@code type} field from interface methods ({@link MessagePart#type()}, {@link
+   * ToolDefinition#type()}) which are not instance fields but should appear in serialized output to
+   * match Python's {@code dataclasses.asdict()} behavior.
    *
    * @return {@code true} if a type field was injected
    */

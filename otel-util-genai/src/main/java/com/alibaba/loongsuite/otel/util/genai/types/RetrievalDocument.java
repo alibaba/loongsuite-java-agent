@@ -17,11 +17,10 @@
 package com.alibaba.loongsuite.otel.util.genai.types;
 
 import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
-/**
- * Represents a document returned by a GenAI retrieval operation.
- */
+/** Represents a document returned by a GenAI retrieval operation. */
 public final class RetrievalDocument {
 
   @Nullable private final String id;
