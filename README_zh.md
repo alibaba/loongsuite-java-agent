@@ -81,14 +81,21 @@ implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 ## 快速开始
 
 ```java
-var openTelemetry = AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
-var handler = GenAiTelemetryHandler.create(openTelemetry);
+OpenTelemetry openTelemetry =
+    AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
+GenAiTelemetryHandler handler = GenAiTelemetryHandler.create(openTelemetry);
 
-try (var inv = handler.inference("openai", "gpt-4o")) {
-    inv.setInputMessages(List.of(new InputMessage("user", List.of(new TextPart("你好")))));
-    var response = client.chat(request);
-    inv.setOutputMessages(List.of(
-        new OutputMessage("assistant", List.of(new TextPart(response.content())), "stop")));
+try (InferenceInvocation inv = handler.inference("openai", "gpt-4o")) {
+    inv.setInputMessages(
+        Collections.singletonList(
+            new InputMessage("user", Collections.singletonList(new TextPart("你好")))));
+    // 调用你的 LLM 客户端后，记录响应：
+    inv.setOutputMessages(
+        Collections.singletonList(
+            new OutputMessage(
+                "assistant",
+                Collections.singletonList(new TextPart("你好！")),
+                "stop")));
 }
 ```
 
@@ -103,7 +110,7 @@ try (var inv = handler.inference("openai", "gpt-4o")) {
 
 ## 要求
 
-- Java 17+
+- Java 8+
 - OpenTelemetry API（使用最新的 `opentelemetry-bom` 发布版本）
 
 ## 社区
