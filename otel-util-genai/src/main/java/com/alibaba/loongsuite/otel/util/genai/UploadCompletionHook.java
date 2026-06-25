@@ -21,14 +21,17 @@ import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.trace.Span;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +42,16 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jspecify.annotations.Nullable;
 
 /**
  * Completion hook that uploads GenAI content to external storage and stamps {@code *_ref}
  * attributes on spans and events.
  *
- * <p>Activated by setting {@link GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK}
- * to {@code upload} and configuring {@link
- * GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH}.
+ * <p>Activated by setting {@link
+ * GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK} to {@code upload} and
+ * configuring {@link GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH}.
  */
 public final class UploadCompletionHook implements CompletionHook {
 
@@ -206,7 +210,7 @@ public final class UploadCompletionHook implements CompletionHook {
     if (contentHashedToFilename && pathExists(path)) {
       return;
     }
-    Path filePath = Path.of(path);
+    Path filePath = Paths.get(path);
     Files.createDirectories(filePath.getParent());
 
     if ("jsonl".equals(format)) {
@@ -217,10 +221,10 @@ public final class UploadCompletionHook implements CompletionHook {
         sb.append(GenAiContentSerializer.toJsonString(line));
         sb.append('\n');
       }
-      Files.writeString(filePath, sb.toString(), StandardCharsets.UTF_8);
+      Files.write(filePath, sb.toString().getBytes(StandardCharsets.UTF_8));
     } else {
-      Files.writeString(
-          filePath, GenAiContentSerializer.toJsonString(payload), StandardCharsets.UTF_8);
+      Files.write(
+          filePath, GenAiContentSerializer.toJsonString(payload).getBytes(StandardCharsets.UTF_8));
     }
 
     if (contentHashedToFilename) {
@@ -233,7 +237,7 @@ public final class UploadCompletionHook implements CompletionHook {
       touchPath(path);
       return true;
     }
-    if (Files.exists(Path.of(path))) {
+    if (Files.exists(Paths.get(path))) {
       rememberPath(path);
       return true;
     }
@@ -243,7 +247,7 @@ public final class UploadCompletionHook implements CompletionHook {
   private void rememberPath(String path) {
     pathCache.put(path, Boolean.TRUE);
     if (pathCache.size() > pathCacheMaxSize) {
-      var iterator = pathCache.keySet().iterator();
+      Iterator<String> iterator = pathCache.keySet().iterator();
       if (iterator.hasNext()) {
         iterator.next();
         iterator.remove();
@@ -261,9 +265,9 @@ public final class UploadCompletionHook implements CompletionHook {
     try {
       Files.createDirectories(basePath);
       if ("jsonl".equals(format)) {
-        Files.writeString(testFile, "\n", StandardCharsets.UTF_8);
+        Files.write(testFile, "\n".getBytes(StandardCharsets.UTF_8));
       } else {
-        Files.writeString(testFile, "[]", StandardCharsets.UTF_8);
+        Files.write(testFile, "[]".getBytes(StandardCharsets.UTF_8));
       }
       Files.deleteIfExists(testFile);
     } catch (IOException e) {
@@ -275,16 +279,16 @@ public final class UploadCompletionHook implements CompletionHook {
 
   private static Path resolveBasePath(String value) {
     if (value.startsWith("file://")) {
-      return Path.of(value.substring("file://".length()));
+      return Paths.get(value.substring("file://".length()));
     }
-    return Path.of(value);
+    return Paths.get(value);
   }
 
   private static String normalizeFormat(@Nullable String value) {
     if (value == null || value.isEmpty()) {
       return DEFAULT_FORMAT;
     }
-    String normalized = value.strip().toLowerCase();
+    String normalized = value.trim().toLowerCase();
     if (!"json".equals(normalized) && !"jsonl".equals(normalized)) {
       logger.warning(() -> "Invalid upload format \"" + value + "\", defaulting to json");
       return DEFAULT_FORMAT;
@@ -297,7 +301,7 @@ public final class UploadCompletionHook implements CompletionHook {
       return DEFAULT_MAX_QUEUE_SIZE;
     }
     try {
-      int parsed = Integer.parseInt(value.strip());
+      int parsed = Integer.parseInt(value.trim());
       return parsed > 0 ? parsed : DEFAULT_MAX_QUEUE_SIZE;
     } catch (NumberFormatException e) {
       logger.warning(() -> "Invalid upload queue size \"" + value + "\", defaulting to 20");
@@ -317,7 +321,7 @@ public final class UploadCompletionHook implements CompletionHook {
     }
     StringBuilder text = new StringBuilder();
     for (MessagePart part : parts) {
-      if (!text.isEmpty()) {
+      if (text.length() > 0) {
         text.append('\n');
       }
       text.append(((TextPart) part).content());
@@ -341,7 +345,11 @@ public final class UploadCompletionHook implements CompletionHook {
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
-      return HexFormat.of().formatHex(hash);
+      StringBuilder hex = new StringBuilder(hash.length * 2);
+      for (byte b : hash) {
+        hex.append(String.format("%02x", b & 0xff));
+      }
+      return hex.toString();
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("SHA-256 not available", e);
     }

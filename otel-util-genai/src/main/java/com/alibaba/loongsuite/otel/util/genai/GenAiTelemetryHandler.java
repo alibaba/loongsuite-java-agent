@@ -23,6 +23,7 @@ import static io.opentelemetry.semconv.incubating.ServerIncubatingAttributes.SER
 
 import com.alibaba.loongsuite.otel.util.genai.stream.StreamMetricsCapable;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -31,16 +32,18 @@ import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.ExceptionIncubatingAttributes;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-import java.util.Map;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -66,8 +69,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GenAiTelemetryHandler {
 
-  private static final String INSTRUMENTATION_NAME =
-      "com.alibaba.loongsuite.otel.util.genai";
+  private static final String INSTRUMENTATION_NAME = "com.alibaba.loongsuite.otel.util.genai";
   private static final String INSTRUMENTATION_VERSION = "0.1.0";
   private static final String SCHEMA_URL = "https://opentelemetry.io/schemas/1.41.1";
 
@@ -262,7 +264,7 @@ public final class GenAiTelemetryHandler {
   public AgentInvocation invokeLocalAgent(
       String provider, @Nullable String requestModel, @Nullable String agentName) {
     String spanName = agentName != null ? "invoke_agent " + agentName : "invoke_agent";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.INTERNAL)
@@ -293,7 +295,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String serverAddress,
       @Nullable Integer serverPort) {
     String spanName = agentName != null ? "invoke_agent " + agentName : "invoke_agent";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.CLIENT)
@@ -320,8 +322,7 @@ public final class GenAiTelemetryHandler {
    * @param provider the GenAI provider name, or {@code null}
    * @param dataSourceId the data source identifier, or {@code null}
    */
-  public RetrievalInvocation retrieval(
-      @Nullable String provider, @Nullable String dataSourceId) {
+  public RetrievalInvocation retrieval(@Nullable String provider, @Nullable String dataSourceId) {
     return retrieval(provider, dataSourceId, null, null);
   }
 
@@ -357,7 +358,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String serverAddress,
       @Nullable Integer serverPort) {
     String spanName = dataSourceId != null ? "retrieval " + dataSourceId : "retrieval";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.CLIENT)
@@ -408,7 +409,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String serverAddress,
       @Nullable Integer serverPort) {
     String spanName = agentName != null ? "create_agent " + agentName : "create_agent";
-    var spanBuilder =
+    SpanBuilder spanBuilder =
         tracer
             .spanBuilder(spanName)
             .setSpanKind(SpanKind.CLIENT)
@@ -433,7 +434,8 @@ public final class GenAiTelemetryHandler {
    * Returns whether content should be captured.
    *
    * <p>Content is captured when the content capturing mode requires it, or when a real completion
-   * hook is configured (not a no-op), matching Python {@code TelemetryHandler.should_capture_content}.
+   * hook is configured (not a no-op), matching Python {@code
+   * TelemetryHandler.should_capture_content}.
    */
   public boolean shouldCaptureContent() {
     return captureContentEnabled;
@@ -444,11 +446,11 @@ public final class GenAiTelemetryHandler {
   // ---------------------------------------------------------------------------
 
   /**
-   * Executes the given action within an inference invocation, automatically calling
-   * {@link GenAiInvocation#fail(Throwable)} if the action throws.
+   * Executes the given action within an inference invocation, automatically calling {@link
+   * GenAiInvocation#fail(Throwable)} if the action throws.
    *
-   * <p>This is the Java equivalent of Python's {@code with handler.llm(invocation)} context
-   * manager pattern — exceptions are always captured on the span.
+   * <p>This is the Java equivalent of Python's {@code with handler.llm(invocation)} context manager
+   * pattern — exceptions are always captured on the span.
    *
    * <pre>{@code
    * handler.inferenceRun("openai", "gpt-4o", inv -> {
@@ -506,8 +508,7 @@ public final class GenAiTelemetryHandler {
   }
 
   /** Callback-style workflow invocation. */
-  public void workflowRun(
-      @Nullable String name, InvocationAction<WorkflowInvocation> action) {
+  public void workflowRun(@Nullable String name, InvocationAction<WorkflowInvocation> action) {
     WorkflowInvocation inv = workflow(name);
     runWithInvocation(inv, action);
   }
@@ -547,8 +548,8 @@ public final class GenAiTelemetryHandler {
       inv.stop();
     } catch (Throwable t) {
       inv.fail(t);
-      if (t instanceof RuntimeException re) throw re;
-      if (t instanceof Error e) throw e;
+      if (t instanceof RuntimeException) throw (RuntimeException) t;
+      if (t instanceof Error) throw (Error) t;
       throw new RuntimeException(t);
     }
   }
@@ -576,14 +577,12 @@ public final class GenAiTelemetryHandler {
 
     long inputTokens = invocation.getInputTokens();
     if (inputTokens >= 0) {
-      Attributes tokenAttrs =
-          metricAttrs.toBuilder().put(GEN_AI_TOKEN_TYPE, "input").build();
+      Attributes tokenAttrs = metricAttrs.toBuilder().put(GEN_AI_TOKEN_TYPE, "input").build();
       metricsRecorder.recordTokenUsage(inputTokens, tokenAttrs, ctx);
     }
     long outputTokens = invocation.getOutputTokens();
     if (outputTokens >= 0) {
-      Attributes tokenAttrs =
-          metricAttrs.toBuilder().put(GEN_AI_TOKEN_TYPE, "output").build();
+      Attributes tokenAttrs = metricAttrs.toBuilder().put(GEN_AI_TOKEN_TYPE, "output").build();
       metricsRecorder.recordTokenUsage(outputTokens, tokenAttrs, ctx);
     }
 
@@ -591,12 +590,11 @@ public final class GenAiTelemetryHandler {
   }
 
   private void recordStreamingMetrics(
-      GenAiInvocation invocation,
-      Attributes metricAttrs,
-      Context ctx) {
-    if (!(invocation instanceof StreamMetricsCapable streamCapable)) {
+      GenAiInvocation invocation, Attributes metricAttrs, Context ctx) {
+    if (!(invocation instanceof StreamMetricsCapable)) {
       return;
     }
+    StreamMetricsCapable streamCapable = (StreamMetricsCapable) invocation;
     Double ttfc = streamCapable.getTimeToFirstChunk();
     if (ttfc != null) {
       metricsRecorder.recordTimeToFirstChunk(ttfc, metricAttrs, ctx);
@@ -614,12 +612,13 @@ public final class GenAiTelemetryHandler {
    * Python ordering: metrics → create event → hook → emit event.
    */
   void finalizeCompletion(GenAiInvocation invocation) {
-    if (invocation instanceof InferenceInvocation inf) {
-      finalizeInferenceCompletion(inf);
-    } else if (invocation instanceof AgentInvocation agent) {
-      invokeAgentCompletionHook(agent);
-    } else if (invocation instanceof WorkflowInvocation workflow) {
-      completionHook.onCompletion(DefaultCompletionHookContext.forWorkflow(workflow, null));
+    if (invocation instanceof InferenceInvocation) {
+      finalizeInferenceCompletion((InferenceInvocation) invocation);
+    } else if (invocation instanceof AgentInvocation) {
+      invokeAgentCompletionHook((AgentInvocation) invocation);
+    } else if (invocation instanceof WorkflowInvocation) {
+      completionHook.onCompletion(
+          DefaultCompletionHookContext.forWorkflow((WorkflowInvocation) invocation, null));
     }
   }
 
@@ -662,9 +661,7 @@ public final class GenAiTelemetryHandler {
     logRecord.setAllAttributes(pendingEvent.getAttributes());
     logRecord.setEventName("gen_ai.client.inference.operation.details");
     logRecord.setContext(
-        invocation.span.getSpanContext().isValid()
-            ? Context.current()
-            : Context.root());
+        invocation.span.getSpanContext().isValid() ? Context.current() : Context.root());
     logRecord.emit();
   }
 
@@ -675,8 +672,8 @@ public final class GenAiTelemetryHandler {
   /**
    * Emits a {@code gen_ai.client.operation.exception} event per semconv v1.41.1.
    *
-   * <p>This is called automatically by {@link GenAiInvocation#finish} when there is an error.
-   * Can also be called manually for custom error scenarios.
+   * <p>This is called automatically by {@link GenAiInvocation#finish} when there is an error. Can
+   * also be called manually for custom error scenarios.
    */
   void emitExceptionEvent(
       GenAiInvocation invocation,
@@ -698,9 +695,7 @@ public final class GenAiTelemetryHandler {
     logRecord.setEventName("gen_ai.client.operation.exception");
     logRecord.setSeverity(Severity.WARN);
     logRecord.setContext(
-        invocation.span.getSpanContext().isValid()
-            ? Context.current()
-            : Context.root());
+        invocation.span.getSpanContext().isValid() ? Context.current() : Context.root());
     logRecord.emit();
   }
 
@@ -719,8 +714,7 @@ public final class GenAiTelemetryHandler {
       @Nullable String scoreLabel,
       @Nullable String explanation,
       @Nullable String responseId) {
-    emitEvaluationResult(
-        evaluationName, scoreValue, scoreLabel, explanation, responseId, null);
+    emitEvaluationResult(evaluationName, scoreValue, scoreLabel, explanation, responseId, null);
   }
 
   /**
@@ -819,8 +813,7 @@ public final class GenAiTelemetryHandler {
               .build();
 
       InvocationMetricsRecorder recorder = new InvocationMetricsRecorder(meter);
-      CompletionHook hook =
-          completionHook != null ? completionHook : CompletionHookLoader.load();
+      CompletionHook hook = completionHook != null ? completionHook : CompletionHookLoader.load();
 
       return new GenAiTelemetryHandler(tracer, recorder, logger, hook);
     }

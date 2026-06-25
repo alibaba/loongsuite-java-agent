@@ -17,8 +17,10 @@
 package com.alibaba.loongsuite.otel.util.genai;
 
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /** Resolves {@code gen_ai.response.finish_reasons} from explicit values or output messages. */

@@ -19,5 +19,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Check code format
+        run: mvn -B spotless:check
+
       - name: Build and test
         run: mvn -B verify -pl otel-util-genai -am

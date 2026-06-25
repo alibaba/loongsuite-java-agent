@@ -23,16 +23,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
-import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
+
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -98,15 +101,15 @@ class CompletionHookIntegrationTest {
                 context -> {
                   capturedRecord.set(context.getLogRecord());
                   if (context.getLogRecord() != null) {
-                    context
-                        .getLogRecord()
-                        .setAttribute("custom.ref", "s3://bucket/object.json");
+                    context.getLogRecord().setAttribute("custom.ref", "s3://bucket/object.json");
                   }
                 })
             .build();
 
     try (InferenceInvocation inv = handler.inference("openai", "gpt-4o")) {
-      inv.setInputMessages(List.of(new InputMessage("user", List.of(new TextPart("hi")))));
+      inv.setInputMessages(
+          Collections.singletonList(
+              new InputMessage("user", Collections.singletonList(new TextPart("hi")))));
       inv.setInputTokens(10L);
       inv.setOutputTokens(5L);
       inv.setResponseModel("gpt-4o-2024");
@@ -146,7 +149,9 @@ class CompletionHookIntegrationTest {
             .build();
 
     try (AgentInvocation inv = handler.invokeLocalAgent("openai", "gpt-4o", "my-agent")) {
-      inv.setInputMessages(List.of(new InputMessage("user", List.of(new TextPart("hi")))));
+      inv.setInputMessages(
+          Collections.singletonList(
+              new InputMessage("user", Collections.singletonList(new TextPart("hi")))));
     }
 
     assertNull(capturedRecord.get());
@@ -170,7 +175,9 @@ class CompletionHookIntegrationTest {
             .setCompletionHook(context -> capturedInputs.set(context.getInputs()))
             .build();
 
-    List<InputMessage> inputs = List.of(new InputMessage("user", List.of(new TextPart("step1"))));
+    List<InputMessage> inputs =
+        Collections.singletonList(
+            new InputMessage("user", Collections.singletonList(new TextPart("step1"))));
     try (WorkflowInvocation inv = handler.workflow("pipeline")) {
       inv.setInputMessages(inputs);
     }

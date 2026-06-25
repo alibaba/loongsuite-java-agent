@@ -19,11 +19,14 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
+
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,9 +57,8 @@ public class GenAiConfig {
 
   @Bean
   public OpenAIClient openAIClient(
-      @Value("${genai.api-key}") String apiKey,
-      @Value("${genai.base-url}") String baseUrl) {
-    if (apiKey == null || apiKey.isBlank()) {
+      @Value("${genai.api-key}") String apiKey, @Value("${genai.base-url}") String baseUrl) {
+    if (apiKey == null || apiKey.trim().isEmpty()) {
       throw new IllegalStateException(
           "genai.api-key is not set. Provide it via:\n"
               + "  -Dgenai.api-key=sk-xxx\n"
@@ -82,12 +84,14 @@ public class GenAiConfig {
 
   private static void bridgeOtelProperties(Environment environment) {
     Set<String> otelKeys = new LinkedHashSet<>();
-    if (environment instanceof AbstractEnvironment abstractEnv) {
+    if (environment instanceof AbstractEnvironment) {
+      AbstractEnvironment abstractEnv = (AbstractEnvironment) environment;
       abstractEnv
           .getPropertySources()
           .forEach(
               ps -> {
-                if (ps instanceof MapPropertySource mps) {
+                if (ps instanceof MapPropertySource) {
+                  MapPropertySource mps = (MapPropertySource) ps;
                   for (String name : mps.getPropertyNames()) {
                     if (name.startsWith("otel.")) {
                       otelKeys.add(name);
@@ -99,7 +103,7 @@ public class GenAiConfig {
 
     for (String key : otelKeys) {
       String resolved = environment.getProperty(key);
-      if (resolved != null && !resolved.isBlank() && System.getProperty(key) == null) {
+      if (resolved != null && !resolved.trim().isEmpty() && System.getProperty(key) == null) {
         System.setProperty(key, resolved);
       }
     }

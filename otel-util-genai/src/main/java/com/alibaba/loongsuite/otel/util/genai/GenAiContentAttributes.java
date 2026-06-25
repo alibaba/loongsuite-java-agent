@@ -25,14 +25,17 @@ import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.common.Value;
+
 import java.util.List;
 
 /**
  * Shared logic for GenAI message content attributes on spans and events.
  *
  * <p>Mirrors Python {@code get_content_attributes(for_span=...)} behavior:
+ *
  * <ul>
  *   <li>{@code forSpan=true}: content is serialized as a JSON string wrapped in {@link Value}
  *   <li>{@code forSpan=false}: content is serialized as structured {@link Value} (list of maps)
@@ -63,7 +66,9 @@ final class GenAiContentAttributes {
       if (!toolDefinitions.isEmpty()) {
         builder.put(
             GenAiAttributes.GEN_AI_TOOL_DEFINITIONS,
-            forSpan ? toJsonValue(toolDefinitions) : GenAiContentSerializer.toValue(toolDefinitions));
+            forSpan
+                ? toJsonValue(toolDefinitions)
+                : GenAiContentSerializer.toValue(toolDefinitions));
       }
       return;
     }

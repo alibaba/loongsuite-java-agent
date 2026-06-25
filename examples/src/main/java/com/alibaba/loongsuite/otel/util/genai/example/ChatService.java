@@ -24,8 +24,11 @@ import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
 import com.openai.client.OpenAIClient;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +79,8 @@ public class ChatService {
 
   private void setRequestAttributes(InferenceInvocation inv, String userMessage) {
     inv.setInputMessages(
-        List.of(new InputMessage("user", List.of(new TextPart(userMessage)))));
+        Collections.singletonList(
+            new InputMessage("user", Collections.singletonList(new TextPart(userMessage)))));
     inv.setTemperature(temperature);
     inv.setMaxTokens(maxTokens);
   }
@@ -99,22 +103,22 @@ public class ChatService {
             .collect(Collectors.toList());
 
     inv.setOutputMessages(
-        List.of(
+        Collections.singletonList(
             new OutputMessage(
                 "assistant",
-                List.of(new TextPart(response.content())),
+                Collections.singletonList(new TextPart(response.getContent())),
                 finishReasons.get(0))));
     inv.setResponseModel(completion.model());
     inv.setResponseId(completion.id());
     inv.setFinishReasons(finishReasons);
-    inv.setInputTokens(response.inputTokens());
-    inv.setOutputTokens(response.outputTokens());
+    inv.setInputTokens(response.getInputTokens());
+    inv.setOutputTokens(response.getOutputTokens());
   }
 
   private ChatResponse extractResponse(ChatCompletion completion) {
     String content =
         completion.choices().stream()
-            .flatMap(choice -> choice.message().content().stream())
+            .map(choice -> choice.message().content().orElse(""))
             .collect(Collectors.joining());
 
     return new ChatResponse(
@@ -125,6 +129,40 @@ public class ChatService {
         completion.usage().map(u -> u.completionTokens()).orElse(0L));
   }
 
-  public record ChatResponse(
-      String content, String model, String id, long inputTokens, long outputTokens) {}
+  public static class ChatResponse {
+    private final String content;
+    private final String model;
+    private final String id;
+    private final long inputTokens;
+    private final long outputTokens;
+
+    public ChatResponse(
+        String content, String model, String id, long inputTokens, long outputTokens) {
+      this.content = content;
+      this.model = model;
+      this.id = id;
+      this.inputTokens = inputTokens;
+      this.outputTokens = outputTokens;
+    }
+
+    public String getContent() {
+      return content;
+    }
+
+    public String getModel() {
+      return model;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public long getInputTokens() {
+      return inputTokens;
+    }
+
+    public long getOutputTokens() {
+      return outputTokens;
+    }
+  }
 }

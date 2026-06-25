@@ -23,6 +23,7 @@ import static com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode.
 import static com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode.fromString;
 
 import com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,10 +36,10 @@ public final class GenAiConfigUtil {
   /**
    * Returns whether the GenAI experimental semconv mode is enabled.
    *
-   * <p>Per OTel spec, the user must set {@code OTEL_SEMCONV_STABILITY_OPT_IN} to include
-   * {@code gen_ai_latest_experimental} to opt in to experimental GenAI semantic conventions.
-   * When unset, the default mode is stable (non-experimental), and content capturing modes
-   * other than simple {@code true/false} are not available.
+   * <p>Per OTel spec, the user must set {@code OTEL_SEMCONV_STABILITY_OPT_IN} to include {@code
+   * gen_ai_latest_experimental} to opt in to experimental GenAI semantic conventions. When unset,
+   * the default mode is stable (non-experimental), and content capturing modes other than simple
+   * {@code true/false} are not available.
    */
   public static boolean isExperimentalMode() {
     String value = getProperty(GenAiEnvironmentVariables.OTEL_SEMCONV_STABILITY_OPT_IN);
@@ -52,20 +53,20 @@ public final class GenAiConfigUtil {
    * Returns the content capturing mode based on the environment configuration.
    *
    * <p>Behavior depends on whether experimental mode is enabled:
+   *
    * <ul>
-   *   <li><b>Stable mode</b> (default): only {@code true} is recognized, mapped to
-   *       {@link ContentCapturingMode#SPAN_ONLY}. Any other value (including enum names)
-   *       results in {@code NO_CONTENT}.</li>
-   *   <li><b>Experimental mode</b> ({@code OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental}):
-   *       supports all enum values: {@code no_content}, {@code span_only}, {@code event_only},
-   *       {@code span_and_event}. The value {@code true} maps to {@code SPAN_ONLY} for
-   *       backward compatibility.</li>
+   *   <li><b>Stable mode</b> (default): only {@code true} is recognized, mapped to {@link
+   *       ContentCapturingMode#SPAN_ONLY}. Any other value (including enum names) results in {@code
+   *       NO_CONTENT}.
+   *   <li><b>Experimental mode</b> ({@code
+   *       OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental}): supports all enum values:
+   *       {@code no_content}, {@code span_only}, {@code event_only}, {@code span_and_event}. The
+   *       value {@code true} maps to {@code SPAN_ONLY} for backward compatibility.
    * </ul>
    */
   public static ContentCapturingMode getContentCapturingMode() {
     String value =
-        getProperty(
-            GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT);
+        getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT);
     if (value == null || value.isEmpty()) {
       return NO_CONTENT;
     }
@@ -88,8 +89,7 @@ public final class GenAiConfigUtil {
             Level.WARNING,
             "Unknown value \"{0}\" for {1}. Defaulting to NO_CONTENT.",
             new Object[] {
-              value,
-              GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
+              value, GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
             });
         return NO_CONTENT;
       }
@@ -104,8 +104,7 @@ public final class GenAiConfigUtil {
               + "Must be one of: true, no_content, span_only, event_only, span_and_event. "
               + "Defaulting to NO_CONTENT.",
           new Object[] {
-            value,
-            GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
+            value, GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
           });
       return NO_CONTENT;
     }
@@ -115,15 +114,15 @@ public final class GenAiConfigUtil {
    * Returns whether event emission is enabled.
    *
    * <p>Priority:
+   *
    * <ol>
-   *   <li>Explicit {@code OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true/false}</li>
+   *   <li>Explicit {@code OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true/false}
    *   <li>Inferred from content capturing mode: {@code EVENT_ONLY} or {@code SPAN_AND_EVENT}
-   *       implies {@code true}; otherwise {@code false}</li>
+   *       implies {@code true}; otherwise {@code false}
    * </ol>
    */
   public static boolean shouldEmitEvent() {
-    String value =
-        getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT);
+    String value = getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT);
     if ("true".equalsIgnoreCase(value)) {
       return true;
     }
@@ -158,9 +157,12 @@ public final class GenAiConfigUtil {
 
   /**
    * Reads a configuration value with the following priority:
+   *
    * <ol>
-   *   <li>System property (dot-separated, e.g. {@code otel.instrumentation.genai.capture.message.content})</li>
-   *   <li>Environment variable (original key, e.g. {@code OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT})</li>
+   *   <li>System property (dot-separated, e.g. {@code
+   *       otel.instrumentation.genai.capture.message.content})
+   *   <li>Environment variable (original key, e.g. {@code
+   *       OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT})
    * </ol>
    */
   /** Reads a configuration value from system property or environment variable. */
@@ -172,11 +174,11 @@ public final class GenAiConfigUtil {
     String sysPropName = envVarName.toLowerCase().replace('_', '.');
     String value = System.getProperty(sysPropName);
     if (value != null && !value.isEmpty()) {
-      return value.strip();
+      return value.trim();
     }
     value = System.getenv(envVarName);
     if (value != null && !value.isEmpty()) {
-      return value.strip();
+      return value.trim();
     }
     return null;
   }

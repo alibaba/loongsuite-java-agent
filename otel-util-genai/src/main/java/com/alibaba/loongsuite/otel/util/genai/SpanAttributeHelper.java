@@ -24,6 +24,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
+
 import org.jspecify.annotations.Nullable;
 
 /**

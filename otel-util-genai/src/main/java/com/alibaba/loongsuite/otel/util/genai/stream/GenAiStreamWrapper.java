@@ -17,6 +17,7 @@
 package com.alibaba.loongsuite.otel.util.genai.stream;
 
 import java.util.Iterator;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -116,7 +117,8 @@ public abstract class GenAiStreamWrapper<T> implements Iterator<T>, AutoCloseabl
       finished = true;
       onStreamEnd();
     }
-    if (delegate instanceof AutoCloseable ac) {
+    if (delegate instanceof AutoCloseable) {
+      AutoCloseable ac = (AutoCloseable) delegate;
       try {
         ac.close();
       } catch (Exception ignored) {

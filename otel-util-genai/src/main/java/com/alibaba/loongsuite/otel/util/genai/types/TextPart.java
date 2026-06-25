@@ -16,10 +16,40 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
-public record TextPart(String content) implements MessagePart {
+import java.util.Objects;
+
+public final class TextPart implements MessagePart {
+
+  private final String content;
+
+  public TextPart(String content) {
+    this.content = content;
+  }
+
+  public String content() {
+    return content;
+  }
 
   @Override
   public String type() {
     return "text";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof TextPart)) return false;
+    TextPart that = (TextPart) o;
+    return Objects.equals(content, that.content);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(content);
+  }
+
+  @Override
+  public String toString() {
+    return "TextPart[content=" + content + "]";
   }
 }

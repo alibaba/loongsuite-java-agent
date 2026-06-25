@@ -23,10 +23,12 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -37,8 +39,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Implements {@link AutoCloseable} for use with try-with-resources. If neither {@link #stop()}
  * nor {@link #fail(Throwable)} has been called when {@link #close()} is invoked, the invocation is
- * completed as a success via {@code stop()}. Callers should explicitly call {@link #fail(Throwable)}
- * in a catch block to record errors.
+ * completed as a success via {@code stop()}. Callers should explicitly call {@link
+ * #fail(Throwable)} in a catch block to record errors.
  */
 public abstract class GenAiInvocation implements AutoCloseable {
 
@@ -93,10 +95,10 @@ public abstract class GenAiInvocation implements AutoCloseable {
   /**
    * Completes the invocation if not already finished. Does not throw checked exceptions.
    *
-   * <p><b>Important:</b> Java's try-with-resources does not pass the in-flight exception to
-   * {@code close()}, unlike Python's context manager {@code __exit__}. If an exception is thrown
-   * inside the try block without calling {@link #fail(Throwable)} first, {@code close()} will
-   * complete the invocation as a <em>success</em>. To ensure correct error recording, use one of:
+   * <p><b>Important:</b> Java's try-with-resources does not pass the in-flight exception to {@code
+   * close()}, unlike Python's context manager {@code __exit__}. If an exception is thrown inside
+   * the try block without calling {@link #fail(Throwable)} first, {@code close()} will complete the
+   * invocation as a <em>success</em>. To ensure correct error recording, use one of:
    *
    * <pre>{@code
    * // Option 1: catch and fail explicitly (recommended)

@@ -21,16 +21,21 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -39,9 +44,9 @@ import org.yaml.snakeyaml.Yaml;
  * Validates that all attribute names used in the implementation match the OTel GenAI Semantic
  * Conventions v1.41.1 registry (aligned with handler schema URL).
  *
- * <p>This test reads {@code semconv/registry.yaml} (the authoritative attribute registry) and
- * scans the Java source files for hardcoded attribute strings, then verifies every attribute
- * used in the code exists in the registry.
+ * <p>This test reads {@code semconv/registry.yaml} (the authoritative attribute registry) and scans
+ * the Java source files for hardcoded attribute strings, then verifies every attribute used in the
+ * code exists in the registry.
  */
 class SemconvComplianceTest {
 
@@ -50,23 +55,31 @@ class SemconvComplianceTest {
 
   // Non-genai attributes that are defined in other OTel semconv registries
   // Attribute keys from other OTel registries, or metric/event names (not attribute keys)
-  private static final Set<String> KNOWN_NON_GENAI_KEYS =
-      Set.of(
-          "server.address", "server.port", "error.type", "event.name",
-          "exception.type", "exception.message", "exception.stacktrace",
-          // metric names (defined in metrics.yaml, not registry.yaml)
-          "gen_ai.client.operation.duration", "gen_ai.client.token.usage",
-          "gen_ai.client.operation.time_to_first_chunk",
-          "gen_ai.client.operation.time_per_output_chunk",
-          // event names (not attribute keys)
-          "gen_ai.client.inference.operation.details",
-          "gen_ai.client.operation.exception",
-          "gen_ai.evaluation.result",
-          // upload completion hook reference attributes (Python util extension)
-          "gen_ai.input.messages_ref",
-          "gen_ai.output.messages_ref",
-          "gen_ai.system_instructions_ref",
-          "gen_ai.tool.definitions_ref");
+  private static final Set<String> KNOWN_NON_GENAI_KEYS;
+
+  static {
+    KNOWN_NON_GENAI_KEYS =
+        new HashSet<>(
+            Arrays.asList(
+                "server.address",
+                "server.port",
+                "error.type",
+                "event.name",
+                "exception.type",
+                "exception.message",
+                "exception.stacktrace",
+                "gen_ai.client.operation.duration",
+                "gen_ai.client.token.usage",
+                "gen_ai.client.operation.time_to_first_chunk",
+                "gen_ai.client.operation.time_per_output_chunk",
+                "gen_ai.client.inference.operation.details",
+                "gen_ai.client.operation.exception",
+                "gen_ai.evaluation.result",
+                "gen_ai.input.messages_ref",
+                "gen_ai.output.messages_ref",
+                "gen_ai.system_instructions_ref",
+                "gen_ai.tool.definitions_ref"));
+  }
 
   @BeforeAll
   static void loadRegistry() throws IOException {
@@ -105,31 +118,33 @@ class SemconvComplianceTest {
 
   @Test
   void inferenceSpanRequiredAttributes() {
-    Set<String> required = Set.of(
-        "gen_ai.operation.name",
-        "gen_ai.provider.name",
-        "gen_ai.request.model",
-        "gen_ai.response.model",
-        "gen_ai.response.id",
-        "gen_ai.response.finish_reasons",
-        "gen_ai.usage.input_tokens",
-        "gen_ai.usage.output_tokens",
-        "gen_ai.request.temperature",
-        "gen_ai.request.top_p",
-        "gen_ai.request.max_tokens",
-        "gen_ai.request.seed",
-        "gen_ai.request.frequency_penalty",
-        "gen_ai.request.presence_penalty",
-        "gen_ai.request.stop_sequences",
-        "gen_ai.request.top_k",
-        "gen_ai.request.choice.count",
-        "gen_ai.output.type",
-        "gen_ai.request.stream",
-        "gen_ai.conversation.id",
-        "gen_ai.response.time_to_first_chunk",
-        "gen_ai.usage.reasoning.output_tokens",
-        "gen_ai.usage.cache_creation.input_tokens",
-        "gen_ai.usage.cache_read.input_tokens");
+    Set<String> required =
+        new HashSet<>(
+            Arrays.asList(
+                "gen_ai.operation.name",
+                "gen_ai.provider.name",
+                "gen_ai.request.model",
+                "gen_ai.response.model",
+                "gen_ai.response.id",
+                "gen_ai.response.finish_reasons",
+                "gen_ai.usage.input_tokens",
+                "gen_ai.usage.output_tokens",
+                "gen_ai.request.temperature",
+                "gen_ai.request.top_p",
+                "gen_ai.request.max_tokens",
+                "gen_ai.request.seed",
+                "gen_ai.request.frequency_penalty",
+                "gen_ai.request.presence_penalty",
+                "gen_ai.request.stop_sequences",
+                "gen_ai.request.top_k",
+                "gen_ai.request.choice.count",
+                "gen_ai.output.type",
+                "gen_ai.request.stream",
+                "gen_ai.conversation.id",
+                "gen_ai.response.time_to_first_chunk",
+                "gen_ai.usage.reasoning.output_tokens",
+                "gen_ai.usage.cache_creation.input_tokens",
+                "gen_ai.usage.cache_read.input_tokens"));
 
     Set<String> missing = new LinkedHashSet<>();
     for (String key : required) {
@@ -146,14 +161,16 @@ class SemconvComplianceTest {
 
   @Test
   void embeddingSpanRequiredAttributes() {
-    Set<String> required = Set.of(
-        "gen_ai.operation.name",
-        "gen_ai.provider.name",
-        "gen_ai.request.model",
-        "gen_ai.request.encoding_formats",
-        "gen_ai.usage.input_tokens",
-        "gen_ai.embeddings.dimension.count",
-        "gen_ai.response.model");
+    Set<String> required =
+        new HashSet<>(
+            Arrays.asList(
+                "gen_ai.operation.name",
+                "gen_ai.provider.name",
+                "gen_ai.request.model",
+                "gen_ai.request.encoding_formats",
+                "gen_ai.usage.input_tokens",
+                "gen_ai.embeddings.dimension.count",
+                "gen_ai.response.model"));
 
     Set<String> missing = new LinkedHashSet<>();
     for (String key : required) {
@@ -170,14 +187,16 @@ class SemconvComplianceTest {
 
   @Test
   void toolSpanRequiredAttributes() {
-    Set<String> required = Set.of(
-        "gen_ai.operation.name",
-        "gen_ai.tool.name",
-        "gen_ai.tool.call.id",
-        "gen_ai.tool.description",
-        "gen_ai.tool.type",
-        "gen_ai.tool.call.arguments",
-        "gen_ai.tool.call.result");
+    Set<String> required =
+        new HashSet<>(
+            Arrays.asList(
+                "gen_ai.operation.name",
+                "gen_ai.tool.name",
+                "gen_ai.tool.call.id",
+                "gen_ai.tool.description",
+                "gen_ai.tool.type",
+                "gen_ai.tool.call.arguments",
+                "gen_ai.tool.call.result"));
 
     Set<String> missing = new LinkedHashSet<>();
     for (String key : required) {
@@ -187,18 +206,19 @@ class SemconvComplianceTest {
     }
     if (!missing.isEmpty()) {
       fail(
-          "ToolInvocation is missing these semconv attributes:\n  "
-              + String.join("\n  ", missing));
+          "ToolInvocation is missing these semconv attributes:\n  " + String.join("\n  ", missing));
     }
   }
 
   @Test
   void workflowSpanRequiredAttributes() {
-    Set<String> required = Set.of(
-        "gen_ai.operation.name",
-        "gen_ai.workflow.name",
-        "gen_ai.input.messages",
-        "gen_ai.output.messages");
+    Set<String> required =
+        new HashSet<>(
+            Arrays.asList(
+                "gen_ai.operation.name",
+                "gen_ai.workflow.name",
+                "gen_ai.input.messages",
+                "gen_ai.output.messages"));
 
     Set<String> missing = new LinkedHashSet<>();
     for (String key : required) {
@@ -215,25 +235,27 @@ class SemconvComplianceTest {
 
   @Test
   void agentSpanRequiredAttributes() {
-    Set<String> required = Set.of(
-        "gen_ai.operation.name",
-        "gen_ai.provider.name",
-        "gen_ai.request.model",
-        "gen_ai.agent.id",
-        "gen_ai.agent.name",
-        "gen_ai.agent.description",
-        "gen_ai.agent.version",
-        "gen_ai.conversation.id",
-        "gen_ai.data_source.id",
-        "gen_ai.usage.input_tokens",
-        "gen_ai.usage.output_tokens",
-        "gen_ai.response.finish_reasons",
-        "gen_ai.request.temperature",
-        "gen_ai.request.max_tokens",
-        "gen_ai.input.messages",
-        "gen_ai.output.messages",
-        "gen_ai.system_instructions",
-        "gen_ai.tool.definitions");
+    Set<String> required =
+        new HashSet<>(
+            Arrays.asList(
+                "gen_ai.operation.name",
+                "gen_ai.provider.name",
+                "gen_ai.request.model",
+                "gen_ai.agent.id",
+                "gen_ai.agent.name",
+                "gen_ai.agent.description",
+                "gen_ai.agent.version",
+                "gen_ai.conversation.id",
+                "gen_ai.data_source.id",
+                "gen_ai.usage.input_tokens",
+                "gen_ai.usage.output_tokens",
+                "gen_ai.response.finish_reasons",
+                "gen_ai.request.temperature",
+                "gen_ai.request.max_tokens",
+                "gen_ai.input.messages",
+                "gen_ai.output.messages",
+                "gen_ai.system_instructions",
+                "gen_ai.tool.definitions"));
 
     Set<String> missing = new LinkedHashSet<>();
     for (String key : required) {
@@ -251,14 +273,17 @@ class SemconvComplianceTest {
   @Test
   void metricNamesMustMatchSemconv() throws IOException {
     Set<String> specMetricNames = parseMetricNames();
-    Set<String> expectedClientMetrics = Set.of(
-        "gen_ai.client.operation.duration",
-        "gen_ai.client.token.usage",
-        "gen_ai.client.operation.time_to_first_chunk",
-        "gen_ai.client.operation.time_per_output_chunk");
+    Set<String> expectedClientMetrics =
+        new HashSet<>(
+            Arrays.asList(
+                "gen_ai.client.operation.duration",
+                "gen_ai.client.token.usage",
+                "gen_ai.client.operation.time_to_first_chunk",
+                "gen_ai.client.operation.time_per_output_chunk"));
 
     for (String metric : expectedClientMetrics) {
-      assertTrue(specMetricNames.contains(metric),
+      assertTrue(
+          specMetricNames.contains(metric),
           "Expected metric " + metric + " to be defined in semconv/metrics.yaml");
     }
   }
@@ -332,65 +357,16 @@ class SemconvComplianceTest {
                 + "|EXCEPTION_TYPE|EXCEPTION_MESSAGE)\\b");
 
     // Mapping from constant name to semconv key
-    Map<String, String> constantToKey = Map.ofEntries(
-        Map.entry("GEN_AI_OPERATION_NAME", "gen_ai.operation.name"),
-        Map.entry("GEN_AI_PROVIDER_NAME", "gen_ai.provider.name"),
-        Map.entry("GEN_AI_REQUEST_MODEL", "gen_ai.request.model"),
-        Map.entry("GEN_AI_REQUEST_TEMPERATURE", "gen_ai.request.temperature"),
-        Map.entry("GEN_AI_REQUEST_TOP_P", "gen_ai.request.top_p"),
-        Map.entry("GEN_AI_REQUEST_FREQUENCY_PENALTY", "gen_ai.request.frequency_penalty"),
-        Map.entry("GEN_AI_REQUEST_PRESENCE_PENALTY", "gen_ai.request.presence_penalty"),
-        Map.entry("GEN_AI_REQUEST_MAX_TOKENS", "gen_ai.request.max_tokens"),
-        Map.entry("GEN_AI_REQUEST_STOP_SEQUENCES", "gen_ai.request.stop_sequences"),
-        Map.entry("GEN_AI_REQUEST_SEED", "gen_ai.request.seed"),
-        Map.entry("GEN_AI_REQUEST_TOP_K", "gen_ai.request.top_k"),
-        Map.entry("GEN_AI_REQUEST_CHOICE_COUNT", "gen_ai.request.choice.count"),
-        Map.entry("GEN_AI_REQUEST_STREAM", "gen_ai.request.stream"),
-        Map.entry("GEN_AI_REQUEST_ENCODING_FORMATS", "gen_ai.request.encoding_formats"),
-        Map.entry("GEN_AI_OUTPUT_TYPE", "gen_ai.output.type"),
-        Map.entry("GEN_AI_RESPONSE_MODEL", "gen_ai.response.model"),
-        Map.entry("GEN_AI_RESPONSE_ID", "gen_ai.response.id"),
-        Map.entry("GEN_AI_RESPONSE_FINISH_REASONS", "gen_ai.response.finish_reasons"),
-        Map.entry("GEN_AI_RESPONSE_TIME_TO_FIRST_CHUNK", "gen_ai.response.time_to_first_chunk"),
-        Map.entry("GEN_AI_USAGE_INPUT_TOKENS", "gen_ai.usage.input_tokens"),
-        Map.entry("GEN_AI_USAGE_OUTPUT_TOKENS", "gen_ai.usage.output_tokens"),
-        Map.entry("GEN_AI_USAGE_REASONING_OUTPUT_TOKENS", "gen_ai.usage.reasoning.output_tokens"),
-        Map.entry("GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS", "gen_ai.usage.cache_creation.input_tokens"),
-        Map.entry("GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS", "gen_ai.usage.cache_read.input_tokens"),
-        Map.entry("GEN_AI_CONVERSATION_ID", "gen_ai.conversation.id"),
-        Map.entry("GEN_AI_DATA_SOURCE_ID", "gen_ai.data_source.id"),
-        Map.entry("GEN_AI_EMBEDDINGS_DIMENSION_COUNT", "gen_ai.embeddings.dimension.count"),
-        Map.entry("GEN_AI_TOKEN_TYPE", "gen_ai.token.type"),
-        Map.entry("GEN_AI_TOOL_NAME", "gen_ai.tool.name"),
-        Map.entry("GEN_AI_TOOL_CALL_ID", "gen_ai.tool.call.id"),
-        Map.entry("GEN_AI_TOOL_TYPE", "gen_ai.tool.type"),
-        Map.entry("GEN_AI_TOOL_DESCRIPTION", "gen_ai.tool.description"),
-        Map.entry("GEN_AI_AGENT_NAME", "gen_ai.agent.name"),
-        Map.entry("GEN_AI_AGENT_ID", "gen_ai.agent.id"),
-        Map.entry("GEN_AI_AGENT_DESCRIPTION", "gen_ai.agent.description"),
-        Map.entry("GEN_AI_AGENT_VERSION", "gen_ai.agent.version"),
-        Map.entry("GEN_AI_WORKFLOW_NAME", "gen_ai.workflow.name"),
-        Map.entry("GEN_AI_RETRIEVAL_QUERY_TEXT", "gen_ai.retrieval.query.text"),
-        Map.entry("GEN_AI_EVALUATION_NAME", "gen_ai.evaluation.name"),
-        Map.entry("GEN_AI_EVALUATION_SCORE_VALUE", "gen_ai.evaluation.score.value"),
-        Map.entry("GEN_AI_EVALUATION_SCORE_LABEL", "gen_ai.evaluation.score.label"),
-        Map.entry("GEN_AI_EVALUATION_EXPLANATION", "gen_ai.evaluation.explanation"),
-        Map.entry("SERVER_ADDRESS", "server.address"),
-        Map.entry("SERVER_PORT", "server.port"),
-        Map.entry("ERROR_TYPE", "error.type"),
-        Map.entry("EXCEPTION_TYPE", "exception.type"),
-        Map.entry("EXCEPTION_MESSAGE", "exception.message"),
-        Map.entry("EXCEPTION_STACKTRACE", "exception.stacktrace"));
+    Map<String, String> constantToKey = buildConstantToKeyMap();
 
-    Path srcDir =
-        Path.of("src/main/java/com/alibaba/loongsuite/otel/util/genai");
-    try (var files = Files.walk(srcDir)) {
+    Path srcDir = Paths.get("src/main/java/com/alibaba/loongsuite/otel/util/genai");
+    try (Stream<Path> files = Files.walk(srcDir)) {
       files
           .filter(p -> p.toString().endsWith(".java"))
           .forEach(
               path -> {
                 try {
-                  String content = Files.readString(path);
+                  String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
                   Matcher stringMatcher = stringPattern.matcher(content);
                   while (stringMatcher.find()) {
                     keys.add(stringMatcher.group(1));
@@ -411,5 +387,58 @@ class SemconvComplianceTest {
     }
 
     return keys;
+  }
+
+  private static Map<String, String> buildConstantToKeyMap() {
+    Map<String, String> map = new LinkedHashMap<>();
+    map.put("GEN_AI_OPERATION_NAME", "gen_ai.operation.name");
+    map.put("GEN_AI_PROVIDER_NAME", "gen_ai.provider.name");
+    map.put("GEN_AI_REQUEST_MODEL", "gen_ai.request.model");
+    map.put("GEN_AI_REQUEST_TEMPERATURE", "gen_ai.request.temperature");
+    map.put("GEN_AI_REQUEST_TOP_P", "gen_ai.request.top_p");
+    map.put("GEN_AI_REQUEST_FREQUENCY_PENALTY", "gen_ai.request.frequency_penalty");
+    map.put("GEN_AI_REQUEST_PRESENCE_PENALTY", "gen_ai.request.presence_penalty");
+    map.put("GEN_AI_REQUEST_MAX_TOKENS", "gen_ai.request.max_tokens");
+    map.put("GEN_AI_REQUEST_STOP_SEQUENCES", "gen_ai.request.stop_sequences");
+    map.put("GEN_AI_REQUEST_SEED", "gen_ai.request.seed");
+    map.put("GEN_AI_REQUEST_TOP_K", "gen_ai.request.top_k");
+    map.put("GEN_AI_REQUEST_CHOICE_COUNT", "gen_ai.request.choice.count");
+    map.put("GEN_AI_REQUEST_STREAM", "gen_ai.request.stream");
+    map.put("GEN_AI_REQUEST_ENCODING_FORMATS", "gen_ai.request.encoding_formats");
+    map.put("GEN_AI_OUTPUT_TYPE", "gen_ai.output.type");
+    map.put("GEN_AI_RESPONSE_MODEL", "gen_ai.response.model");
+    map.put("GEN_AI_RESPONSE_ID", "gen_ai.response.id");
+    map.put("GEN_AI_RESPONSE_FINISH_REASONS", "gen_ai.response.finish_reasons");
+    map.put("GEN_AI_RESPONSE_TIME_TO_FIRST_CHUNK", "gen_ai.response.time_to_first_chunk");
+    map.put("GEN_AI_USAGE_INPUT_TOKENS", "gen_ai.usage.input_tokens");
+    map.put("GEN_AI_USAGE_OUTPUT_TOKENS", "gen_ai.usage.output_tokens");
+    map.put("GEN_AI_USAGE_REASONING_OUTPUT_TOKENS", "gen_ai.usage.reasoning.output_tokens");
+    map.put("GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS", "gen_ai.usage.cache_creation.input_tokens");
+    map.put("GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS", "gen_ai.usage.cache_read.input_tokens");
+    map.put("GEN_AI_CONVERSATION_ID", "gen_ai.conversation.id");
+    map.put("GEN_AI_DATA_SOURCE_ID", "gen_ai.data_source.id");
+    map.put("GEN_AI_EMBEDDINGS_DIMENSION_COUNT", "gen_ai.embeddings.dimension.count");
+    map.put("GEN_AI_TOKEN_TYPE", "gen_ai.token.type");
+    map.put("GEN_AI_TOOL_NAME", "gen_ai.tool.name");
+    map.put("GEN_AI_TOOL_CALL_ID", "gen_ai.tool.call.id");
+    map.put("GEN_AI_TOOL_TYPE", "gen_ai.tool.type");
+    map.put("GEN_AI_TOOL_DESCRIPTION", "gen_ai.tool.description");
+    map.put("GEN_AI_AGENT_NAME", "gen_ai.agent.name");
+    map.put("GEN_AI_AGENT_ID", "gen_ai.agent.id");
+    map.put("GEN_AI_AGENT_DESCRIPTION", "gen_ai.agent.description");
+    map.put("GEN_AI_AGENT_VERSION", "gen_ai.agent.version");
+    map.put("GEN_AI_WORKFLOW_NAME", "gen_ai.workflow.name");
+    map.put("GEN_AI_RETRIEVAL_QUERY_TEXT", "gen_ai.retrieval.query.text");
+    map.put("GEN_AI_EVALUATION_NAME", "gen_ai.evaluation.name");
+    map.put("GEN_AI_EVALUATION_SCORE_VALUE", "gen_ai.evaluation.score.value");
+    map.put("GEN_AI_EVALUATION_SCORE_LABEL", "gen_ai.evaluation.score.label");
+    map.put("GEN_AI_EVALUATION_EXPLANATION", "gen_ai.evaluation.explanation");
+    map.put("SERVER_ADDRESS", "server.address");
+    map.put("SERVER_PORT", "server.port");
+    map.put("ERROR_TYPE", "error.type");
+    map.put("EXCEPTION_TYPE", "exception.type");
+    map.put("EXCEPTION_MESSAGE", "exception.message");
+    map.put("EXCEPTION_STACKTRACE", "exception.stacktrace");
+    return map;
   }
 }

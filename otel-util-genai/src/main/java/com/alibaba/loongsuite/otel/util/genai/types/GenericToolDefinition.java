@@ -16,4 +16,43 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
-public record GenericToolDefinition(String name, String type) implements ToolDefinition {}
+import java.util.Objects;
+
+public final class GenericToolDefinition implements ToolDefinition {
+
+  private final String name;
+  private final String type;
+
+  public GenericToolDefinition(String name, String type) {
+    this.name = name;
+    this.type = type;
+  }
+
+  @Override
+  public String name() {
+    return name;
+  }
+
+  @Override
+  public String type() {
+    return type;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof GenericToolDefinition)) return false;
+    GenericToolDefinition that = (GenericToolDefinition) o;
+    return Objects.equals(name, that.name) && Objects.equals(type, that.type);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, type);
+  }
+
+  @Override
+  public String toString() {
+    return "GenericToolDefinition[name=" + name + ", type=" + type + "]";
+  }
+}

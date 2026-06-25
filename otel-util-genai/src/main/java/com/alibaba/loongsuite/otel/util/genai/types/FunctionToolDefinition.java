@@ -16,14 +16,66 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
+import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
-public record FunctionToolDefinition(
-    String name, @Nullable String description, @Nullable Object parameters)
-    implements ToolDefinition {
+public final class FunctionToolDefinition implements ToolDefinition {
+
+  private final String name;
+  @Nullable private final String description;
+  @Nullable private final Object parameters;
+
+  public FunctionToolDefinition(
+      String name, @Nullable String description, @Nullable Object parameters) {
+    this.name = name;
+    this.description = description;
+    this.parameters = parameters;
+  }
+
+  @Override
+  public String name() {
+    return name;
+  }
+
+  @Nullable
+  public String description() {
+    return description;
+  }
+
+  @Nullable
+  public Object parameters() {
+    return parameters;
+  }
 
   @Override
   public String type() {
     return "function";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof FunctionToolDefinition)) return false;
+    FunctionToolDefinition that = (FunctionToolDefinition) o;
+    return Objects.equals(name, that.name)
+        && Objects.equals(description, that.description)
+        && Objects.equals(parameters, that.parameters);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, description, parameters);
+  }
+
+  @Override
+  public String toString() {
+    return "FunctionToolDefinition[name="
+        + name
+        + ", description="
+        + description
+        + ", parameters="
+        + parameters
+        + "]";
   }
 }

@@ -18,9 +18,12 @@ package com.alibaba.loongsuite.otel.util.genai;
 
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.common.ValueType;
-import java.lang.reflect.RecordComponent;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -29,14 +32,18 @@ import java.util.Map;
 
 public final class GenAiContentSerializer {
 
+  private static final String TYPES_PACKAGE = "com.alibaba.loongsuite.otel.util.genai.types";
+
   private GenAiContentSerializer() {}
 
-  /** Converts a list of message/document records to a structured {@link Value} for semconv attrs. */
+  /**
+   * Converts a list of message/document objects to a structured {@link Value} for semconv attrs.
+   */
   public static Value<?> toValue(List<?> items) {
     List<Value<?>> values = new ArrayList<>();
     for (Object item : items) {
-      if (item instanceof Record) {
-        values.add(objectToValue(recordToMap((Record) item)));
+      if (isDataObject(item)) {
+        values.add(objectToValue(dataObjectToMap(item)));
       } else if (item instanceof Map) {
         values.add(objectToValue(item));
       }
@@ -71,8 +78,8 @@ public final class GenAiContentSerializer {
   public static List<Map<String, Object>> toMapList(List<?> items) {
     List<Map<String, Object>> result = new ArrayList<>();
     for (Object item : items) {
-      if (item instanceof Record) {
-        result.add(recordToMap((Record) item));
+      if (isDataObject(item)) {
+        result.add(dataObjectToMap(item));
       } else if (item instanceof Map) {
         @SuppressWarnings("unchecked")
         Map<String, Object> map = (Map<String, Object>) item;
@@ -123,8 +130,8 @@ public final class GenAiContentSerializer {
         serializeValue(sb, entry.getValue());
       }
       sb.append('}');
-    } else if (value instanceof Record) {
-      serializeRecord(sb, (Record) value);
+    } else if (isDataObject(value)) {
+      serializeDataObject(sb, value);
     } else {
       sb.append('"');
       escapeJsonString(sb, String.valueOf(value));
@@ -132,34 +139,37 @@ public final class GenAiContentSerializer {
     }
   }
 
-  private static void serializeRecord(StringBuilder sb, Record record) {
+  private static void serializeDataObject(StringBuilder sb, Object obj) {
     sb.append('{');
     boolean first = true;
     boolean typeInjected = false;
-    // Inject interface type field first (MessagePart.type(), ToolDefinition.type())
-    if (record instanceof MessagePart mp) {
+    if (obj instanceof MessagePart) {
       sb.append("\"type\":");
-      serializeValue(sb, mp.type());
+      serializeValue(sb, ((MessagePart) obj).type());
       first = false;
       typeInjected = true;
-    } else if (record instanceof ToolDefinition td) {
+    } else if (obj instanceof ToolDefinition) {
       sb.append("\"type\":");
-      serializeValue(sb, td.type());
+      serializeValue(sb, ((ToolDefinition) obj).type());
       first = false;
       typeInjected = true;
     }
-    RecordComponent[] components = record.getClass().getRecordComponents();
-    for (RecordComponent component : components) {
-      if (typeInjected && "type".equals(component.getName())) {
+    Field[] fields = obj.getClass().getDeclaredFields();
+    for (Field field : fields) {
+      if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }
-      Object componentValue;
+      if (typeInjected && "type".equals(field.getName())) {
+        continue;
+      }
+      Object fieldValue;
       try {
-        componentValue = component.getAccessor().invoke(record);
+        field.setAccessible(true);
+        fieldValue = field.get(obj);
       } catch (Exception e) {
         continue;
       }
-      if (componentValue == null) {
+      if (fieldValue == null) {
         continue;
       }
       if (!first) {
@@ -167,10 +177,10 @@ public final class GenAiContentSerializer {
       }
       first = false;
       sb.append('"');
-      escapeJsonString(sb, component.getName());
+      escapeJsonString(sb, field.getName());
       sb.append('"');
       sb.append(':');
-      serializeValue(sb, componentValue);
+      serializeValue(sb, fieldValue);
     }
     sb.append('}');
   }
@@ -215,59 +225,71 @@ public final class GenAiContentSerializer {
     return Value.of(String.valueOf(obj));
   }
 
-  static Map<String, Object> recordToMap(Record record) {
+  static Map<String, Object> dataObjectToMap(Object obj) {
     Map<String, Object> map = new LinkedHashMap<>();
-    boolean typeInjected = injectInterfaceType(record, map);
-    RecordComponent[] components = record.getClass().getRecordComponents();
-    for (RecordComponent component : components) {
-      if (typeInjected && "type".equals(component.getName())) {
+    boolean typeInjected = injectInterfaceType(obj, map);
+    Field[] fields = obj.getClass().getDeclaredFields();
+    for (Field field : fields) {
+      if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }
-      Object componentValue;
+      if (typeInjected && "type".equals(field.getName())) {
+        continue;
+      }
+      Object fieldValue;
       try {
-        componentValue = component.getAccessor().invoke(record);
+        field.setAccessible(true);
+        fieldValue = field.get(obj);
       } catch (Exception e) {
         continue;
       }
-      if (componentValue == null) {
+      if (fieldValue == null) {
         continue;
       }
-      if (componentValue instanceof Record) {
-        map.put(component.getName(), recordToMap((Record) componentValue));
-      } else if (componentValue instanceof List) {
-        List<?> list = (List<?>) componentValue;
+      if (isDataObject(fieldValue)) {
+        map.put(field.getName(), dataObjectToMap(fieldValue));
+      } else if (fieldValue instanceof List) {
+        List<?> list = (List<?>) fieldValue;
         List<Object> converted = new ArrayList<>();
         for (Object item : list) {
-          if (item instanceof Record) {
-            converted.add(recordToMap((Record) item));
+          if (isDataObject(item)) {
+            converted.add(dataObjectToMap(item));
           } else {
             converted.add(item);
           }
         }
-        map.put(component.getName(), converted);
+        map.put(field.getName(), converted);
       } else {
-        map.put(component.getName(), componentValue);
+        map.put(field.getName(), fieldValue);
       }
     }
     return map;
   }
 
   /**
-   * Injects the {@code type} field from sealed interface methods ({@link MessagePart#type()},
-   * {@link ToolDefinition#type()}) which are not record components but should appear in
-   * serialized output to match Python's {@code dataclasses.asdict()} behavior.
+   * Injects the {@code type} field from interface methods ({@link MessagePart#type()}, {@link
+   * ToolDefinition#type()}) which are not instance fields but should appear in serialized output to
+   * match Python's {@code dataclasses.asdict()} behavior.
    *
    * @return {@code true} if a type field was injected
    */
-  private static boolean injectInterfaceType(Record record, Map<String, Object> map) {
-    if (record instanceof MessagePart mp) {
-      map.put("type", mp.type());
+  private static boolean injectInterfaceType(Object obj, Map<String, Object> map) {
+    if (obj instanceof MessagePart) {
+      map.put("type", ((MessagePart) obj).type());
       return true;
-    } else if (record instanceof ToolDefinition td) {
-      map.put("type", td.type());
+    } else if (obj instanceof ToolDefinition) {
+      map.put("type", ((ToolDefinition) obj).type());
       return true;
     }
     return false;
+  }
+
+  private static boolean isDataObject(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    Package pkg = obj.getClass().getPackage();
+    return pkg != null && TYPES_PACKAGE.equals(pkg.getName());
   }
 
   private static void escapeJsonString(StringBuilder sb, String str) {

@@ -20,6 +20,8 @@
         <spring-boot.version>3.5.3</spring-boot.version>
         <openai-java.version>4.26.0</openai-java.version>
         <loongsuite.publish.skip>true</loongsuite.publish.skip>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
     <dependencyManagement>

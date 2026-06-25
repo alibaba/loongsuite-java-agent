@@ -20,8 +20,11 @@ import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.ToolDefinition;
+
 import io.opentelemetry.api.trace.Span;
+
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -40,8 +43,7 @@ public interface CompletionHookContext {
   List<MessagePart> getSystemInstruction();
 
   /** Returns the tool definitions provided to the model, or {@code null} if none were set. */
-  @Nullable
-  List<ToolDefinition> getToolDefinitions();
+  @Nullable List<ToolDefinition> getToolDefinitions();
 
   /** Returns the underlying span for the invocation. */
   Span getSpan();
@@ -51,6 +53,5 @@ public interface CompletionHookContext {
    *
    * <p>Hooks may stamp additional attributes on the record before it is emitted.
    */
-  @Nullable
-  EventLogRecord getLogRecord();
+  @Nullable EventLogRecord getLogRecord();
 }

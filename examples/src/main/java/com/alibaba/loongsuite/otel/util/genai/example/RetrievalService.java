@@ -19,7 +19,11 @@ package com.alibaba.loongsuite.otel.util.genai.example;
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
 import com.alibaba.loongsuite.otel.util.genai.RetrievalInvocation;
 import com.alibaba.loongsuite.otel.util.genai.types.RetrievalDocument;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -51,22 +55,65 @@ public class RetrievalService {
       List<DocumentResult> docs = mockSearch(query, topK);
       inv.setDocuments(
           docs.stream()
-              .map(d -> new RetrievalDocument(d.id(), d.score(), d.snippet()))
-              .toList());
+              .map(d -> new RetrievalDocument(d.getId(), d.getScore(), d.getSnippet()))
+              .collect(Collectors.toList()));
 
       return new RetrievalResponse(dataSourceId, query, docs);
     }
   }
 
   private List<DocumentResult> mockSearch(String query, int topK) {
-    return List.of(
+    return Arrays.asList(
         new DocumentResult("doc-001", 0.95, "OpenTelemetry is an observability framework..."),
         new DocumentResult("doc-002", 0.87, "Semantic conventions define attribute names..."),
         new DocumentResult("doc-003", 0.72, "GenAI spans track LLM operations..."));
   }
 
-  public record DocumentResult(String id, double score, String snippet) {}
+  public static class DocumentResult {
+    private final String id;
+    private final double score;
+    private final String snippet;
 
-  public record RetrievalResponse(
-      String dataSourceId, String query, List<DocumentResult> documents) {}
+    public DocumentResult(String id, double score, String snippet) {
+      this.id = id;
+      this.score = score;
+      this.snippet = snippet;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public double getScore() {
+      return score;
+    }
+
+    public String getSnippet() {
+      return snippet;
+    }
+  }
+
+  public static class RetrievalResponse {
+    private final String dataSourceId;
+    private final String query;
+    private final List<DocumentResult> documents;
+
+    public RetrievalResponse(String dataSourceId, String query, List<DocumentResult> documents) {
+      this.dataSourceId = dataSourceId;
+      this.query = query;
+      this.documents = documents;
+    }
+
+    public String getDataSourceId() {
+      return dataSourceId;
+    }
+
+    public String getQuery() {
+      return query;
+    }
+
+    public List<DocumentResult> getDocuments() {
+      return documents;
+    }
+  }
 }

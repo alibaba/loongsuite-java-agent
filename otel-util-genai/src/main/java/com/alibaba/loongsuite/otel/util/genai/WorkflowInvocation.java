@@ -20,13 +20,16 @@ import static io.opentelemetry.semconv.incubating.GenAiIncubatingAttributes.*;
 
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
+
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.incubating.ErrorIncubatingAttributes;
+
 import java.util.Collections;
 import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -41,8 +44,7 @@ public final class WorkflowInvocation extends GenAiInvocation {
   private List<InputMessage> inputMessages = Collections.emptyList();
   private List<OutputMessage> outputMessages = Collections.emptyList();
 
-  WorkflowInvocation(
-      GenAiTelemetryHandler handler, Span span, Scope scope, @Nullable String name) {
+  WorkflowInvocation(GenAiTelemetryHandler handler, Span span, Scope scope, @Nullable String name) {
     super(handler, span, scope);
     this.name = name;
   }
@@ -63,8 +65,7 @@ public final class WorkflowInvocation extends GenAiInvocation {
   // Package-private getters (for handler)
   // ---------------------------------------------------------------------------
 
-  @Nullable
-  String getName() {
+  @Nullable String getName() {
     return name;
   }
 
@@ -98,8 +99,7 @@ public final class WorkflowInvocation extends GenAiInvocation {
     }
 
     AttributesBuilder contentBuilder = Attributes.builder();
-    GenAiContentAttributes.appendWorkflowContent(
-        contentBuilder, inputMessages, outputMessages);
+    GenAiContentAttributes.appendWorkflowContent(contentBuilder, inputMessages, outputMessages);
     span.setAllAttributes(contentBuilder.build());
   }
 

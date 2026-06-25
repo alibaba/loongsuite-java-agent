@@ -20,8 +20,8 @@ package com.alibaba.loongsuite.otel.util.genai;
  * Hook invoked when a GenAI invocation completes.
  *
  * <p>Implementations are discovered via {@link CompletionHookLoader} or registered explicitly on
- * the {@link GenAiTelemetryHandler.Builder}. Set {@code OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK=upload}
- * to enable {@link UploadCompletionHook}.
+ * the {@link GenAiTelemetryHandler.Builder}. Set {@code
+ * OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK=upload} to enable {@link UploadCompletionHook}.
  */
 @FunctionalInterface
 public interface CompletionHook {

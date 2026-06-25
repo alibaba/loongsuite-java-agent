@@ -16,10 +16,40 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
-public record ReasoningPart(String content) implements MessagePart {
+import java.util.Objects;
+
+public final class ReasoningPart implements MessagePart {
+
+  private final String content;
+
+  public ReasoningPart(String content) {
+    this.content = content;
+  }
+
+  public String content() {
+    return content;
+  }
 
   @Override
   public String type() {
     return "reasoning";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ReasoningPart)) return false;
+    ReasoningPart that = (ReasoningPart) o;
+    return Objects.equals(content, that.content);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(content);
+  }
+
+  @Override
+  public String toString() {
+    return "ReasoningPart[content=" + content + "]";
   }
 }

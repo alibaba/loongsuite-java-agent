@@ -16,7 +16,7 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
-public sealed interface ToolDefinition permits FunctionToolDefinition, GenericToolDefinition {
+public interface ToolDefinition {
 
   String type();
 

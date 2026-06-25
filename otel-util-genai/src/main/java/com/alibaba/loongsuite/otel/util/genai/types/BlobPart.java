@@ -16,13 +16,66 @@
 
 package com.alibaba.loongsuite.otel.util.genai.types;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
-public record BlobPart(String modality, @Nullable String mimeType, byte[] content)
-    implements MessagePart {
+public final class BlobPart implements MessagePart {
+
+  private final String modality;
+  @Nullable private final String mimeType;
+  private final byte[] content;
+
+  public BlobPart(String modality, @Nullable String mimeType, byte[] content) {
+    this.modality = modality;
+    this.mimeType = mimeType;
+    this.content = content;
+  }
+
+  public String modality() {
+    return modality;
+  }
+
+  @Nullable
+  public String mimeType() {
+    return mimeType;
+  }
+
+  public byte[] content() {
+    return content;
+  }
 
   @Override
   public String type() {
     return "blob";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BlobPart)) return false;
+    BlobPart that = (BlobPart) o;
+    return Objects.equals(modality, that.modality)
+        && Objects.equals(mimeType, that.mimeType)
+        && Arrays.equals(content, that.content);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(modality, mimeType);
+    result = 31 * result + Arrays.hashCode(content);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "BlobPart[modality="
+        + modality
+        + ", mimeType="
+        + mimeType
+        + ", content="
+        + Arrays.toString(content)
+        + "]";
   }
 }

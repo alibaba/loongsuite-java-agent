@@ -24,14 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.TextPart;
+
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -47,8 +51,7 @@ class UploadCompletionHookTest {
 
   @Test
   void uploadStampsRefsOnSpanAndEvent() throws Exception {
-    System.setProperty(
-        "otel.instrumentation.genai.upload.base.path", tempDir.toString());
+    System.setProperty("otel.instrumentation.genai.upload.base.path", tempDir.toString());
 
     try {
       CompletionHook hook = UploadCompletionHook.tryCreate();
@@ -59,8 +62,7 @@ class UploadCompletionHookTest {
           SdkTracerProvider.builder()
               .addSpanProcessor(SimpleSpanProcessor.create(exporter))
               .build();
-      OpenTelemetrySdk sdk =
-          OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
+      OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
       GenAiTelemetryHandler handler =
           GenAiTelemetryHandler.builder(sdk).setCompletionHook(hook).build();
 
@@ -69,19 +71,23 @@ class UploadCompletionHookTest {
       System.setProperty("otel.instrumentation.genai.emit.event", "true");
 
       try (InferenceInvocation inv = handler.inference("openai", "gpt-4o")) {
-        inv.setInputMessages(List.of(new InputMessage("user", List.of(new TextPart("hi")))));
+        inv.setInputMessages(
+            Collections.singletonList(
+                new InputMessage("user", Collections.singletonList(new TextPart("hi")))));
         inv.setOutputMessages(
-            List.of(new OutputMessage("assistant", List.of(new TextPart("hello")), "stop")));
+            Collections.singletonList(
+                new OutputMessage(
+                    "assistant", Collections.singletonList(new TextPart("hello")), "stop")));
       }
 
-      var spans = exporter.getFinishedSpanItems();
+      List<io.opentelemetry.sdk.trace.data.SpanData> spans = exporter.getFinishedSpanItems();
       assertEquals(1, spans.size());
-      var attrs = spans.get(0).getAttributes();
+      io.opentelemetry.api.common.Attributes attrs = spans.get(0).getAttributes();
       assertNotNull(attrs.get(AttributeKey.stringKey("gen_ai.input.messages_ref")));
       assertNotNull(attrs.get(AttributeKey.stringKey("gen_ai.output.messages_ref")));
 
-      if (hook instanceof UploadCompletionHook uploadHook) {
-        uploadHook.shutdown();
+      if (hook instanceof UploadCompletionHook) {
+        ((UploadCompletionHook) hook).shutdown();
       }
       Thread.sleep(200);
       assertTrue(Files.list(tempDir).anyMatch(p -> p.getFileName().toString().contains("inputs")));
