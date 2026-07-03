@@ -185,7 +185,7 @@ new BlobPart("audio/pcm", pcmBytes);
 alibaba:
   cloud:
     sls:
-      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://cn-hangzhou.log.aliyuncs.com}
+      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://<region>.log.aliyuncs.com}
       access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY_ID:<your-access-key-id>}
       access-key-secret: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:<your-access-key-secret>}
 
@@ -199,7 +199,7 @@ otel.instrumentation.genai:
 或通过环境变量覆盖：
 
 ```bash
-export ALIBABA_CLOUD_SLS_ENDPOINT=https://cn-hangzhou.log.aliyuncs.com
+export ALIBABA_CLOUD_SLS_ENDPOINT=https://<region>.log.aliyuncs.com
 export ALIBABA_CLOUD_ACCESS_KEY_ID=<your-ak>
 export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<your-sk>
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=sls://my-project/my-logstore

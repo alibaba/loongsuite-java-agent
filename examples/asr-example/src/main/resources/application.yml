@@ -28,11 +28,12 @@ dashscope:
 # ---------------------------------------------------------------------------
 # SLS multimodal upload credentials (optional — use env vars in production)
 # Env vars ALIBABA_CLOUD_* override these values when set.
+# endpoint region examples: cn-hangzhou, cn-beijing, cn-shanghai
 # ---------------------------------------------------------------------------
 alibaba:
   cloud:
     sls:
-      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://cn-hangzhou.log.aliyuncs.com}
+      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://<region>.log.aliyuncs.com}
       access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY_ID:<your-access-key-id>}
       access-key-secret: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:<your-access-key-secret>}
 

@@ -218,7 +218,7 @@ Hook 内异常由 `SafeCompletionHook` 捕获，不会传播到应用。
 
 ## 可运行示例
 
-见 [examples/README.md](../examples/README.md)，覆盖 7 种 GenAI 操作。
+见 [examples/README.zh-CN.md](../examples/README.zh-CN.md)，覆盖 7 种 GenAI 操作。
 
 ```bash
 mvn install -DskipTests
