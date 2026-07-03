@@ -63,6 +63,7 @@ class MultimodalPreUploaderTest {
     System.clearProperty("otel.semconv.stability.opt.in");
     System.clearProperty("otel.instrumentation.genai.multimodal.upload.mode");
     System.clearProperty("otel.instrumentation.genai.multimodal.storage.base.path");
+    System.clearProperty("otel.instrumentation.genai.multimodal.audio.conversion");
     System.clearProperty("otel.instrumentation.genai.capture.message.content");
   }
 
@@ -92,7 +93,9 @@ class MultimodalPreUploaderTest {
     assertInstanceOf(UriPart.class, part);
     UriPart uriPart = (UriPart) part;
     assertTrue(uriPart.uri().contains(tempDir.toString()) || uriPart.uri().startsWith("file://"));
-    assertEquals("audio/pcm", uriPart.mimeType());
+    assertEquals("audio/wav", uriPart.mimeType());
+    assertEquals("audio", uriPart.modality());
+    assertTrue(uriPart.uri().endsWith(".wav"));
 
     String expectedDate =
         DateTimeFormatter.ofPattern("yyyyMMdd")

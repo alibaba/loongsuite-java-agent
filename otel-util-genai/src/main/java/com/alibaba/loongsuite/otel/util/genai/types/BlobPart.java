@@ -23,16 +23,22 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlobPart implements MessagePart {
 
-  private final String modality;
+  private final @Nullable String modality;
   @Nullable private final String mimeType;
   private final byte[] content;
 
   public BlobPart(String modality, @Nullable String mimeType, byte[] content) {
-    this.modality = modality;
+    this.modality = Modality.resolve(modality, mimeType);
     this.mimeType = mimeType;
     this.content = content;
   }
 
+  /** Creates a blob part; modality is inferred from {@code mimeType} when omitted. */
+  public BlobPart(@Nullable String mimeType, byte[] content) {
+    this(null, mimeType, content);
+  }
+
+  @Nullable
   public String modality() {
     return modality;
   }

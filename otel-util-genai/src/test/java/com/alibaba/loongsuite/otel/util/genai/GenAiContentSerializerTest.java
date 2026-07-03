@@ -86,7 +86,7 @@ class GenAiContentSerializerTest {
     assertTrue(json.contains("\"assistant\""));
     assertTrue(json.contains("The answer is 4."));
     assertTrue(json.contains("\"stop\""));
-    assertTrue(json.contains("\"finishReason\""));
+    assertTrue(json.contains("\"finish_reason\""));
   }
 
   @Test

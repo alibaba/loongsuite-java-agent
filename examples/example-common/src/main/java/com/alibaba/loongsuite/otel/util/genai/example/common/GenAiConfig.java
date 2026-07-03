@@ -17,7 +17,6 @@
 package com.alibaba.loongsuite.otel.util.genai.example.common;
 
 import com.alibaba.loongsuite.otel.util.genai.GenAiTelemetryHandler;
-import com.alibaba.loongsuite.otel.util.genai.stream.StreamMetricsCapable;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
@@ -54,8 +53,9 @@ public class GenAiConfig {
 
   @Bean
   public OpenTelemetry openTelemetry(Environment environment) {
-    // Bridge otel.* from application.yml into System properties for AutoConfiguredOpenTelemetrySdk
+    // Bridge otel.* and SLS credentials from application.yml into System properties
     bridgeOtelProperties(environment);
+    bridgeSlsCredentials(environment);
     return AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
   }
 
@@ -105,9 +105,28 @@ public class GenAiConfig {
     }
 
     for (String key : otelKeys) {
-      String resolved = environment.getProperty(key);
-      if (resolved != null && !resolved.trim().isEmpty() && System.getProperty(key) == null) {
-        System.setProperty(key, resolved);
+      bridgeProperty(key, environment.getProperty(key));
+    }
+  }
+
+  /** Maps {@code alibaba.cloud.sls.*} from application.yml to ALIBABA_CLOUD_* system properties. */
+  private static void bridgeSlsCredentials(Environment environment) {
+    bridgeProperty(
+        "ALIBABA_CLOUD_SLS_ENDPOINT", environment.getProperty("alibaba.cloud.sls.endpoint"));
+    bridgeProperty(
+        "ALIBABA_CLOUD_ACCESS_KEY_ID", environment.getProperty("alibaba.cloud.sls.access-key-id"));
+    bridgeProperty(
+        "ALIBABA_CLOUD_ACCESS_KEY_SECRET",
+        environment.getProperty("alibaba.cloud.sls.access-key-secret"));
+    bridgeProperty(
+        "ALIBABA_CLOUD_SLS_REGION", environment.getProperty("alibaba.cloud.sls.region"));
+  }
+
+  private static void bridgeProperty(String key, String value) {
+    if (value != null && !value.trim().isEmpty() && System.getProperty(key) == null) {
+      String envValue = System.getenv(key);
+      if (envValue == null || envValue.trim().isEmpty()) {
+        System.setProperty(key, value.trim());
       }
     }
   }

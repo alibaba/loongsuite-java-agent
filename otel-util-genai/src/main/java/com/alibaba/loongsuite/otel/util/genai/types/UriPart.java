@@ -22,16 +22,22 @@ import org.jspecify.annotations.Nullable;
 
 public final class UriPart implements MessagePart {
 
-  private final String modality;
+  private final @Nullable String modality;
   @Nullable private final String mimeType;
   private final String uri;
 
   public UriPart(String modality, @Nullable String mimeType, String uri) {
-    this.modality = modality;
+    this.modality = Modality.resolve(modality, mimeType);
     this.mimeType = mimeType;
     this.uri = uri;
   }
 
+  /** Creates a URI part; modality is inferred from {@code mimeType} when omitted. */
+  public UriPart(@Nullable String mimeType, String uri) {
+    this(null, mimeType, uri);
+  }
+
+  @Nullable
   public String modality() {
     return modality;
   }

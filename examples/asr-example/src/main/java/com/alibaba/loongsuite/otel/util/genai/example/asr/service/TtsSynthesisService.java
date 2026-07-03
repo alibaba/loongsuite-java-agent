@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
 public class TtsSynthesisService {
 
   private static final Logger log = LoggerFactory.getLogger(TtsSynthesisService.class);
-  private static final String MP3_MIME = "audio/mpeg";
+  private static final String WAV_MIME = "audio/wav";
 
   @Value("${genai.api-key}")
   private String apiKey;
@@ -78,7 +78,7 @@ public class TtsSynthesisService {
               .model(model)
               .voice(voice)
               .apiKey(apiKey)
-              .format(SpeechSynthesisAudioFormat.MP3_22050HZ_MONO_256KBPS)
+              .format(SpeechSynthesisAudioFormat.WAV_22050HZ_MONO_16BIT)
               .build();
 
       SpeechSynthesizer synthesizer = new SpeechSynthesizer(param, null);
@@ -120,17 +120,16 @@ public class TtsSynthesisService {
         invocation.fail(error);
         return;
       }
-      byte[] mp3 = audioOut.toByteArray();
-      if (mp3.length == 0) {
+      byte[] wav = audioOut.toByteArray();
+      if (wav.length == 0) {
         invocation.fail("EmptySpeech", "TTS returned no audio");
         return;
       }
-      // BlobPart output; external upload + gen_ai.output_ref only when otel.instrumentation.genai.multimodal.* is configured
       invocation.setOutputMessages(
           Collections.singletonList(
               new OutputMessage(
                   "assistant",
-                  Collections.singletonList(new BlobPart("speech", MP3_MIME, mp3)),
+                  Collections.singletonList(new BlobPart(WAV_MIME, wav)),
                   "stop")));
     }
   }

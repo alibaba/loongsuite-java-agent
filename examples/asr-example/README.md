@@ -53,7 +53,7 @@ Client                          Server (asr-example)
   |<--- {"type":"transcript",...} ---|  recognized text
   |<--- {"type":"intent",...} -------|  weather / chitchat
   |<--- {"type":"text",...} ---------|  LLM reply text
-  |<--- binary: MP3 chunks ----------|  cosyvoice streaming TTS
+  |<--- binary: WAV chunks ----------|  cosyvoice streaming TTS
   |<--- {"type":"complete"} ---------|  turn finished
 ```
 
@@ -64,7 +64,7 @@ Client                          Server (asr-example)
 | → Server | Binary | PCM, 16 kHz mono s16le, ~100 ms per chunk recommended |
 | → Server | Text | Literal `END` (end of utterance, start processing) |
 | ← Server | Text JSON | `connected` / `transcript` / `intent` / `text` / `complete` / `error` |
-| ← Server | Binary | TTS audio (MP3 fragments) |
+| ← Server | Binary | TTS audio (WAV fragments) |
 
 ### 5. Sample utterances
 
@@ -129,7 +129,7 @@ See the comment block in `src/main/resources/application.yml`.
 2. Client sends PCM binary frames
 3. Client sends text `END`
 4. **ASR** → **LLM intent** (`chat`) → **LLM reply** (`chat`) → **TTS** (calls **execute_tool get_weather** on weather intent)
-5. Server returns JSON events + MP3 binary stream
+5. Server returns JSON events + WAV binary stream
 
 ## Trace model
 
@@ -146,17 +146,134 @@ See the comment block in `src/main/resources/application.yml`.
 
 ### Multimodal blob upload (optional)
 
-Not required for GenAI spans. Application code always uses `BlobPart` for PCM/MP3; the library's `MultimodalCompletionHook` (auto-registered when configured) uploads blobs and replaces them with `UriPart` before span end.
+GenAI spans work **without** external upload. Application code passes audio as `BlobPart`; when multimodal is configured, `otel-util-genai` auto-registers `MultimodalCompletionHook`, uploads blobs to SLS (or local disk), and replaces them with `UriPart` before the span ends. CMS GenAI view can then play audio from the `sls://…` URI in span metadata.
 
-To **enable** upload, set in `application.yml`:
+#### What gets uploaded in this demo
 
-| Property | Example | Description |
-|----------|---------|-------------|
-| `otel.instrumentation.genai.multimodal.upload.mode` | `both` | `input` / `output` / `both` / `none` |
-| `otel.instrumentation.genai.multimodal.storage.base.path` | `file:///tmp/genai-multimodal` or `sls://project/logstore` | Upload destination |
-| `otel.instrumentation.genai.multimodal.uploader` | `local` or `sls` | Uploader implementation (SLS needs AK/SK env vars) |
+| Span | Direction | Audio in span | After upload |
+|------|-----------|---------------|--------------|
+| `generate_content fun-asr-realtime` | input | PCM (`audio/pcm`) | `.wav` if `multimodal.audio.conversion=true`, else `.pcm` |
+| `generate_content cosyvoice-v3-plus` | output | WAV (`audio/wav`) | `.wav` |
 
-To **disable** upload: set `multimodal.upload.mode: none`, or omit `multimodal.storage.base.path`. Spans still record `BlobPart` without external storage.
+TTS uses `WAV_22050HZ_MONO_16BIT` so CMS can render playback. ASR input PCM can be converted to WAV on upload via `multimodal.audio.conversion`.
+
+`BlobPart` **modality is inferred** from MIME type (`audio/wav` → `audio`). You usually only pass MIME + bytes:
+
+```java
+new BlobPart("audio/wav", wavBytes);
+new BlobPart("audio/pcm", pcmBytes);
+```
+
+#### Prerequisites (all required for upload + CMS metadata)
+
+| Property | Value | Env var |
+|----------|-------|---------|
+| `otel.semconv.stability.opt.in` | `gen_ai_latest_experimental` | `OTEL_SEMCONV_STABILITY_OPT_IN` |
+| `otel.instrumentation.genai.capture.message.content` | `span_and_event` (or `span_only`) | `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` |
+| `otel.instrumentation.genai.extended.enabled` | `true` (default) | `OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED` |
+| `otel.instrumentation.genai.multimodal.upload.mode` | `input` / `output` / `both` | `OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE` |
+| `otel.instrumentation.genai.multimodal.storage.base.path` | `sls://project/logstore` | `OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH` |
+
+`GenAiConfig` (example-common) bridges `alibaba.cloud.sls.*` from `application.yml` to `ALIBABA_CLOUD_*` system properties before OTel SDK init.
+
+#### Example: enable SLS upload
+
+Edit `src/main/resources/application.yml` (use placeholders in git; real keys via env vars):
+
+```yaml
+alibaba:
+  cloud:
+    sls:
+      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://cn-hangzhou.log.aliyuncs.com}
+      access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY_ID:<your-access-key-id>}
+      access-key-secret: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:<your-access-key-secret>}
+
+otel.instrumentation.genai:
+  capture.message.content: span_and_event
+  multimodal.upload.mode: both          # input + output
+  multimodal.storage.base.path: sls://<project>/<logstore>
+  multimodal.uploader: sls
+  multimodal.audio.conversion: true       # PCM → WAV on upload (CMS-friendly)
+```
+
+Or override via environment:
+
+```bash
+export ALIBABA_CLOUD_SLS_ENDPOINT=https://cn-hangzhou.log.aliyuncs.com
+export ALIBABA_CLOUD_ACCESS_KEY_ID=<your-ak>
+export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<your-sk>
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=sls://my-project/my-logstore
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER=sls
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION=true
+```
+
+Requires **aliyun-log SDK ≥ 0.6.155** on the classpath (pulled transitively by `otel-util-genai`).
+
+#### Object URI layout
+
+Uploaded objects use:
+
+```
+sls://{project}/{logstore}/{yyyyMMdd}/{md5}.{ext}
+```
+
+Example: `sls://my-project/my-logstore/20260703/eaab5db4….wav`
+
+Use the **full URI from CMS trace** (`gen_ai.output.multimodal_metadata` or message `UriPart`). Do not guess from MD5 filename alone.
+
+#### CMS metadata shape
+
+After upload, span metadata entries look like (snake_case, aligned with Python agent):
+
+```json
+{
+  "type": "uri",
+  "mime_type": "audio/wav",
+  "modality": "audio",
+  "uri": "sls://project/logstore/20260703/abc123.wav"
+}
+```
+
+If CMS does not render audio, check `modality` is `audio` (not `speech`) and keys use `mime_type` (not `mimeType`).
+
+#### Verify upload (scripts)
+
+**Round-trip smoke test** (PutObject + GetObject):
+
+```bash
+# From repo root, after mvn install
+export ALIBABA_CLOUD_SLS_ENDPOINT=...
+export ALIBABA_CLOUD_ACCESS_KEY_ID=...
+export ALIBABA_CLOUD_ACCESS_KEY_SECRET=...
+# compile + run SlsMultimodalRoundTrip (see scripts/SlsMultimodalRoundTrip.java)
+```
+
+**Download object from SLS** (copy URI from CMS trace):
+
+```bash
+cd examples/asr-example/scripts
+python3 -m venv .venv-sls && source .venv-sls/bin/activate
+pip install aliyun-log-python-sdk pyyaml
+python get_sls_object.py \
+  'sls://project/logstore/20260703/abc123.wav' \
+  /tmp/out.wav
+```
+
+Reads `alibaba.cloud.sls.*` from `../src/main/resources/application.yml` by default. Java CLI: `scripts/GetSlsMultimodalObject.java`.
+
+#### Disable upload
+
+Set `multimodal.upload.mode: none`, or remove `multimodal.storage.base.path`. Spans still record inline `BlobPart` without external storage.
+
+#### Multimodal troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| No `gen_ai.*.multimodal_metadata` on span | Enable `capture.message.content`, `extended.enabled`, and `multimodal.upload.mode` ≠ `none` |
+| Log: `Falling back to local multimodal uploader` | SLS init failed — check AK/SK, endpoint, aliyun-log version |
+| GetObject 404 | Object not on SLS (local fallback wrote under `sls:/…` in repo cwd) or wrong URI (missing date prefix) |
+| CMS shows URI but no player | Use `audio/wav` + `modality: audio`; enable `multimodal.audio.conversion` for ASR PCM |
 
 ## Troubleshooting
 
@@ -166,6 +283,8 @@ To **disable** upload: set `multimodal.upload.mode: none`, or omit `multimodal.s
 | WebSocket connection failed | Check port 8080 and path `/ws/asr` |
 | `未能识别语音内容` / no speech recognized | Ensure PCM is 16 kHz mono; convert WAV with ffmpeg |
 | TTS error | Match model and voice version (v3 model + v3 voice) |
+| Multimodal not uploading | See [Multimodal blob upload](#multimodal-blob-upload-optional) |
+| CMS audio not playable | TTS outputs WAV; set `multimodal.audio.conversion: true` for ASR PCM |
 
 ## Key classes
 
@@ -174,4 +293,7 @@ To **disable** upload: set `multimodal.upload.mode: none`, or omit `multimodal.s
 - `service/LlmService` — intent classification + reply (`chat`)
 - `service/WeatherToolService` — `execute_tool get_weather`
 - `scripts/ws_voice_client.py` — CLI test client
+- `scripts/get_sls_object.py` — download multimodal object from SLS (GetObject)
+- `scripts/GetSlsMultimodalObject.java` — Java GetObject CLI
+- `example-common/GenAiConfig` — bridges `otel.*` and `alibaba.cloud.sls.*` to system properties
 - `example-common/GenAiOperations` — standard `gen_ai.operation.name` constants

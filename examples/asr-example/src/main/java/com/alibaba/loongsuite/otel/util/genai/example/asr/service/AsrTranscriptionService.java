@@ -149,7 +149,7 @@ public class AsrTranscriptionService {
             Collections.singletonList(
                 new InputMessage(
                     "user",
-                    Collections.singletonList(new BlobPart("audio", PCM_MIME, pcm)))));
+                    Collections.singletonList(new BlobPart(PCM_MIME, pcm)))));
       }
     }
     try {

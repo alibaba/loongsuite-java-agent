@@ -54,7 +54,7 @@ ffmpeg -i your-voice.m4a -ar 16000 -ac 1 -f s16le - \
   |<--- {"type":"transcript",...} ---|  识别文本
   |<--- {"type":"intent",...} -------|  weather / chitchat
   |<--- {"type":"text",...} ---------|  LLM 回复文本
-  |<--- binary: MP3 音频块 (可多次) --|  cosyvoice 流式 TTS
+  |<--- binary: WAV 音频块 (可多次) --|  cosyvoice 流式 TTS
   |<--- {"type":"complete"} ---------|  本轮结束
 ```
 
@@ -65,7 +65,7 @@ ffmpeg -i your-voice.m4a -ar 16000 -ac 1 -f s16le - \
 | → 服务端 | Binary | PCM，16kHz mono s16le，建议每包 ~100ms |
 | → 服务端 | Text | 固定字符串 `END`（表示本轮说完，开始处理） |
 | ← 服务端 | Text JSON | `connected` / `transcript` / `intent` / `text` / `complete` / `error` |
-| ← 服务端 | Binary | TTS 音频（MP3 片段） |
+| ← 服务端 | Binary | TTS 音频（WAV 片段） |
 
 ### 5. 建议测试话术
 
@@ -130,7 +130,7 @@ acs.cms.workspace=<your-workspace-id>
 2. 客户端发送 PCM 二进制帧
 3. 客户端发送文本 `END`
 4. **ASR** → **LLM 意图** (`chat`) → **LLM 回复** (`chat`) → **TTS**（weather 意图时调用 **execute_tool get_weather**）
-5. 返回 JSON 事件 + MP3 二进制流
+5. 返回 JSON 事件 + WAV 二进制流
 
 ## Trace model
 
@@ -147,17 +147,124 @@ acs.cms.workspace=<your-workspace-id>
 
 ### 多模态 blob 上传（可选）
 
-GenAI span 不依赖此功能。业务代码始终用 `BlobPart` 传递 PCM/MP3；库在配置齐全时自动注册 `MultimodalCompletionHook`，在 span 结束前上传并替换为 `UriPart`。
+**不配置也能正常产生 GenAI span。** 业务代码用 `BlobPart` 传递音频；配置齐全后，`otel-util-genai` 自动注册 `MultimodalCompletionHook`，在 span 结束前把 blob 上传到 SLS（或本地目录），并替换为 `UriPart`。CMS GenAI 视图可通过 metadata 中的 `sls://…` URI 播放音频。
 
-**启用**上传时在 `application.yml` 配置：
+#### 本 demo 会上传什么
 
-| 配置项 | 示例 | 说明 |
-|--------|------|------|
-| `otel.instrumentation.genai.multimodal.upload.mode` | `both` | `input` / `output` / `both` / `none` |
-| `otel.instrumentation.genai.multimodal.storage.base.path` | `file:///tmp/genai-multimodal` 或 `sls://project/logstore` | 存储路径 |
-| `otel.instrumentation.genai.multimodal.uploader` | `local` 或 `sls` | 上传实现（SLS 需 AK/SK 环境变量） |
+| Span | 方向 | span 内音频 | 上传后 |
+|------|------|-------------|--------|
+| `generate_content fun-asr-realtime` | input | PCM（`audio/pcm`） | 开启 `multimodal.audio.conversion` 时为 `.wav`，否则 `.pcm` |
+| `generate_content cosyvoice-v3-plus` | output | WAV（`audio/wav`） | `.wav` |
 
-**禁用**上传：设置 `multimodal.upload.mode: none`，或删除 `multimodal.storage.base.path`。span 仍可记录 `BlobPart`，不会外置存储。
+TTS 使用 `WAV_22050HZ_MONO_16BIT`，便于 CMS 渲染。ASR 输入 PCM 可通过 `multimodal.audio.conversion` 在上传时转为 WAV。
+
+`BlobPart` 的 **modality 会从 MIME 自动推断**（`audio/wav` → `audio`），一般只需传 MIME + 字节：
+
+```java
+new BlobPart("audio/wav", wavBytes);
+new BlobPart("audio/pcm", pcmBytes);
+```
+
+#### 前置条件（上传 + CMS metadata 均需满足）
+
+| 配置项 | 值 | 环境变量 |
+|--------|-----|----------|
+| `otel.semconv.stability.opt.in` | `gen_ai_latest_experimental` | `OTEL_SEMCONV_STABILITY_OPT_IN` |
+| `otel.instrumentation.genai.capture.message.content` | `span_and_event`（或 `span_only`） | `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` |
+| `otel.instrumentation.genai.extended.enabled` | `true`（默认） | `OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED` |
+| `otel.instrumentation.genai.multimodal.upload.mode` | `input` / `output` / `both` | `OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE` |
+| `otel.instrumentation.genai.multimodal.storage.base.path` | `sls://project/logstore` | `OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH` |
+
+`GenAiConfig`（example-common）会在 OTel SDK 初始化前，把 `application.yml` 中的 `alibaba.cloud.sls.*` 桥接到 `ALIBABA_CLOUD_*` 系统属性。
+
+#### 示例：启用 SLS 上传
+
+编辑 `src/main/resources/application.yml`（仓库内用占位符，真实密钥走环境变量）：
+
+```yaml
+alibaba:
+  cloud:
+    sls:
+      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://cn-hangzhou.log.aliyuncs.com}
+      access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY_ID:<your-access-key-id>}
+      access-key-secret: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:<your-access-key-secret>}
+
+otel.instrumentation.genai:
+  capture.message.content: span_and_event
+  multimodal.upload.mode: both          # input + output
+  multimodal.storage.base.path: sls://<project>/<logstore>
+  multimodal.uploader: sls
+  multimodal.audio.conversion: true       # PCM → WAV（CMS 可播放）
+```
+
+或通过环境变量覆盖：
+
+```bash
+export ALIBABA_CLOUD_SLS_ENDPOINT=https://cn-hangzhou.log.aliyuncs.com
+export ALIBABA_CLOUD_ACCESS_KEY_ID=<your-ak>
+export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<your-sk>
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=sls://my-project/my-logstore
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER=sls
+export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION=true
+```
+
+需要 classpath 上有 **aliyun-log SDK ≥ 0.6.155**（由 `otel-util-genai` 传递依赖引入）。
+
+#### 对象 URI 规则
+
+```
+sls://{project}/{logstore}/{yyyyMMdd}/{md5}.{ext}
+```
+
+示例：`sls://my-project/my-logstore/20260703/eaab5db4….wav`
+
+请从 **CMS trace** 复制完整 URI（`gen_ai.output.multimodal_metadata` 或 message 中的 `UriPart`），不要仅凭 MD5 文件名拼接。
+
+#### CMS metadata 格式
+
+上传后 span metadata 条目形如（snake_case，与 Python agent 一致）：
+
+```json
+{
+  "type": "uri",
+  "mime_type": "audio/wav",
+  "modality": "audio",
+  "uri": "sls://project/logstore/20260703/abc123.wav"
+}
+```
+
+若 CMS 无法播放，检查 `modality` 是否为 `audio`（不是 `speech`），字段名是否为 `mime_type`（不是 `mimeType`）。
+
+#### 验证上传（脚本）
+
+**Round-trip 冒烟**（PutObject + GetObject）：见 `scripts/SlsMultimodalRoundTrip.java`。
+
+**从 SLS 下载对象**（URI 从 CMS trace 复制）：
+
+```bash
+cd examples/asr-example/scripts
+python3 -m venv .venv-sls && source .venv-sls/bin/activate
+pip install aliyun-log-python-sdk pyyaml
+python get_sls_object.py \
+  'sls://project/logstore/20260703/abc123.wav' \
+  /tmp/out.wav
+```
+
+默认读取 `../src/main/resources/application.yml` 中的 `alibaba.cloud.sls.*`。Java CLI：`scripts/GetSlsMultimodalObject.java`。
+
+#### 关闭上传
+
+设置 `multimodal.upload.mode: none`，或删除 `multimodal.storage.base.path`。span 仍记录内联 `BlobPart`，不会外置存储。
+
+#### 多模态故障排查
+
+| 现象 | 处理 |
+|------|------|
+| span 上没有 `gen_ai.*.multimodal_metadata` | 确认 `capture.message.content`、`extended.enabled` 已开，且 `multimodal.upload.mode` ≠ `none` |
+| 日志：`Falling back to local multimodal uploader` | SLS 初始化失败 — 检查 AK/SK、endpoint、aliyun-log 版本 |
+| GetObject 404 | 对象不在 SLS（fallback 写到本地 `sls:/…`）或 URI 错误（缺少日期前缀） |
+| CMS 有 URI 但无播放器 | 使用 `audio/wav` + `modality: audio`；ASR PCM 需开 `multimodal.audio.conversion` |
 
 ## 故障排查
 
@@ -167,6 +274,8 @@ GenAI span 不依赖此功能。业务代码始终用 `BlobPart` 传递 PCM/MP3�
 | WebSocket 连不上 | 确认端口 8080、路径 `/ws/asr` |
 | `未能识别语音内容` | 确认 PCM 为 16kHz mono；WAV 需先 ffmpeg 转换 |
 | TTS 报错 | 检查模型/音色版本是否匹配（v3 模型 + v3 音色） |
+| 多模态未上传 | 见 [多模态 blob 上传](#多模态-blob-上传可选) |
+| CMS 音频无法播放 | TTS 已输出 WAV；ASR PCM 需 `multimodal.audio.conversion: true` |
 
 ## Key classes
 
@@ -175,4 +284,7 @@ GenAI span 不依赖此功能。业务代码始终用 `BlobPart` 传递 PCM/MP3�
 - `service/LlmService` — 意图分类 + 回复（`chat`）
 - `service/WeatherToolService` — `execute_tool get_weather`
 - `scripts/ws_voice_client.py` — 命令行测试客户端
+- `scripts/get_sls_object.py` — 从 SLS 下载多模态对象（GetObject）
+- `scripts/GetSlsMultimodalObject.java` — Java 版 GetObject CLI
+- `example-common/GenAiConfig` — 将 `otel.*`、`alibaba.cloud.sls.*` 桥接到系统属性
 - `example-common/GenAiOperations` — 标准 `gen_ai.operation.name` 常量

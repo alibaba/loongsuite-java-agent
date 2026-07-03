@@ -177,7 +177,7 @@ public final class GenAiContentSerializer {
       }
       first = false;
       sb.append('"');
-      escapeJsonString(sb, field.getName());
+      escapeJsonString(sb, camelToSnake(field.getName()));
       sb.append('"');
       sb.append(':');
       serializeValue(sb, fieldValue);
@@ -246,8 +246,9 @@ public final class GenAiContentSerializer {
       if (fieldValue == null) {
         continue;
       }
+      String key = camelToSnake(field.getName());
       if (isDataObject(fieldValue)) {
-        map.put(field.getName(), dataObjectToMap(fieldValue));
+        map.put(key, dataObjectToMap(fieldValue));
       } else if (fieldValue instanceof List) {
         List<?> list = (List<?>) fieldValue;
         List<Object> converted = new ArrayList<>();
@@ -258,9 +259,9 @@ public final class GenAiContentSerializer {
             converted.add(item);
           }
         }
-        map.put(field.getName(), converted);
+        map.put(key, converted);
       } else {
-        map.put(field.getName(), fieldValue);
+        map.put(key, fieldValue);
       }
     }
     return map;
@@ -290,6 +291,22 @@ public final class GenAiContentSerializer {
     }
     Package pkg = obj.getClass().getPackage();
     return pkg != null && TYPES_PACKAGE.equals(pkg.getName());
+  }
+
+  static String camelToSnake(String name) {
+    StringBuilder sb = new StringBuilder(name.length() + 4);
+    for (int i = 0; i < name.length(); i++) {
+      char ch = name.charAt(i);
+      if (Character.isUpperCase(ch)) {
+        if (i > 0) {
+          sb.append('_');
+        }
+        sb.append(Character.toLowerCase(ch));
+      } else {
+        sb.append(ch);
+      }
+    }
+    return sb.toString();
   }
 
   private static void escapeJsonString(StringBuilder sb, String str) {
