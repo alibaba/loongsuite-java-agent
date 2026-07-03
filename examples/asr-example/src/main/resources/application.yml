@@ -26,6 +26,17 @@ dashscope:
     voice: ${DASHSCOPE_TTS_VOICE:longanyang}
 
 # ---------------------------------------------------------------------------
+# SLS multimodal upload credentials (optional — use env vars in production)
+# Env vars ALIBABA_CLOUD_* override these values when set.
+# ---------------------------------------------------------------------------
+alibaba:
+  cloud:
+    sls:
+      endpoint: ${ALIBABA_CLOUD_SLS_ENDPOINT:https://cn-hangzhou.log.aliyuncs.com}
+      access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY_ID:<your-access-key-id>}
+      access-key-secret: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:<your-access-key-secret>}
+
+# ---------------------------------------------------------------------------
 # otel-util-genai required / recommended settings
 #
 # [Required] otel.semconv.stability.opt.in=gen_ai_latest_experimental
@@ -38,8 +49,7 @@ dashscope:
 #   acs.cms.workspace=<your-workspace-id>
 #
 # [Optional] Multimodal blob upload — NOT required for GenAI spans.
-# Default below uses local disk; set multimodal.upload.mode: none to disable upload entirely.
-# For SLS upload, set multimodal.storage.base.path / uploader below and provide cloud credentials via env.
+# SLS path/uploader below; credentials in alibaba.cloud.sls.* (or ALIBABA_CLOUD_* env vars).
 # ---------------------------------------------------------------------------
 otel.semconv.stability.opt.in: gen_ai_latest_experimental
 otel.instrumentation.genai:
@@ -47,12 +57,13 @@ otel.instrumentation.genai:
   emit.event: true
   extended.enabled: ${OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED:true}
   multimodal.upload.mode: both
-  multimodal.storage.base.path: ${OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH:file:///tmp/genai-multimodal}
-  multimodal.uploader: ${OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER:local}
+  multimodal.storage.base.path: ${OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH:sls://<project>/<logstore>}
+  multimodal.uploader: ${OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER:sls}
 
 # ---------------------------------------------------------------------------
-# OpenTelemetry SDK — defaults export OTLP to CMS APM.
+# OpenTelemetry SDK — CMS APM (Java OTel SDK / otel-util-genai manual instrumentation)
 # Replace <your-*> placeholders below with your CMS credentials.
+# Override any value with OTEL_* env vars. Do NOT commit real LicenseKey to public repos.
 # Set OTEL_TRACES_EXPORTER=logging for local trace debugging without CMS.
 #
 # CMS/ARMS GenAI view requires OTEL_RESOURCE_ATTRIBUTES to include:
