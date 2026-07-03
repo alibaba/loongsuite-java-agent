@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Uses the SLS Object API ({@code GetObject}), symmetric to {@code PutObject}. Example URI:
  *
- * <pre>{@code sls://liuyu-python-test/liuyu-python-test/20260702/abc123.pcm}</pre>
+ * <pre>{@code sls://my-project/my-logstore/20260702/abc123.pcm}</pre>
  */
 public final class SlsObjectReader {
 

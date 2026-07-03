@@ -12,8 +12,13 @@ public class EnableSlsMultimodal {
     String accessKeyId = env("ALIBABA_CLOUD_ACCESS_KEY_ID", "ALIYUN_ACCESS_KEY_ID", "SLS_ACCESS_KEY_ID");
     String accessKeySecret =
         env("ALIBABA_CLOUD_ACCESS_KEY_SECRET", "ALIYUN_ACCESS_KEY_SECRET", "SLS_ACCESS_KEY_SECRET");
-    String project = args.length > 0 ? args[0] : "liuyu-python-test";
-    String logstore = args.length > 1 ? args[1] : project;
+    if (args.length < 2) {
+      System.err.println("Usage: EnableSlsMultimodal <project> <logstore>");
+      System.err.println("Example: EnableSlsMultimodal my-project my-logstore");
+      System.exit(1);
+    }
+    String project = args[0];
+    String logstore = args[1];
 
     if (endpoint == null || accessKeyId == null || accessKeySecret == null) {
       System.err.println("Missing SLS credentials env vars.");

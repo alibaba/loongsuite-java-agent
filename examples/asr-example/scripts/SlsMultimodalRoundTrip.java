@@ -8,11 +8,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** PutObject then GetObject round-trip smoke test. */
+/** PutObject then GetObject round-trip smoke test. Requires SLS credentials via env vars. */
 public class SlsMultimodalRoundTrip {
 
   public static void main(String[] args) throws Exception {
-    String basePath = "sls://liuyu-python-test/liuyu-python-test";
+    String basePath =
+        args.length > 0
+            ? args[0]
+            : env("OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH", "SLS_BASE_PATH");
+    if (basePath == null || basePath.isEmpty()) {
+      System.err.println(
+          "Usage: SlsMultimodalRoundTrip [sls://project/logstore]");
+      System.err.println(
+          "Or set OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=sls://my-project/my-logstore");
+      System.exit(1);
+    }
     String objectName = "test-getobject/" + UUID.randomUUID() + ".txt";
     String uri = basePath + "/" + objectName;
     byte[] payload = ("hello-getobject-" + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
@@ -54,5 +64,15 @@ public class SlsMultimodalRoundTrip {
       System.exit(5);
     }
     System.out.println("Round-trip OK");
+  }
+
+  private static String env(String... names) {
+    for (String name : names) {
+      String value = System.getenv(name);
+      if (value != null && !value.isEmpty()) {
+        return value.trim();
+      }
+    }
+    return null;
   }
 }

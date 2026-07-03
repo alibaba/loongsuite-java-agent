@@ -32,6 +32,9 @@ hs_err_pid*
 .env
 *.env.local
 
+# Accidental local multimodal storage (file:// or sls:// path artifacts)
+sls:/
+
 # Demo / test audio (asr-example voice samples)
 *.mp3
 *.pcm

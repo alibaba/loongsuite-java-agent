@@ -27,9 +27,9 @@ class SlsUriParserTest {
   void parseObjectUri() {
     SlsUriParser.SlsObjectLocation location =
         SlsUriParser.parseObjectUri(
-            "sls://liuyu-python-test/liuyu-python-test/20260702/abc123.pcm");
-    assertEquals("liuyu-python-test", location.project);
-    assertEquals("liuyu-python-test", location.logstore);
+            "sls://my-project/my-logstore/20260702/abc123.pcm");
+    assertEquals("my-project", location.project);
+    assertEquals("my-logstore", location.logstore);
     assertEquals("20260702/abc123.pcm", location.objectName);
   }
 
