@@ -152,10 +152,10 @@ GenAI spans work **without** external upload. Application code passes audio as `
 
 | Span | Direction | Audio in span | After upload |
 |------|-----------|---------------|--------------|
-| `generate_content fun-asr-realtime` | input | PCM (`audio/pcm`) | `.wav` if `multimodal.audio.conversion=true`, else `.pcm` |
+| `generate_content fun-asr-realtime` | input | PCM (`audio/pcm`) | `.wav` (default: PCM→WAV on upload) |
 | `generate_content cosyvoice-v3-plus` | output | WAV (`audio/wav`) | `.wav` |
 
-TTS uses `WAV_22050HZ_MONO_16BIT` so CMS can render playback. ASR input PCM can be converted to WAV on upload via `multimodal.audio.conversion`.
+TTS uses `WAV_22050HZ_MONO_16BIT` so CMS can render playback. ASR input PCM is converted to WAV on upload by default (`multimodal.audio.conversion` defaults to `true` in the library). Set `multimodal.audio.conversion: false` to upload raw PCM.
 
 `BlobPart` **modality is inferred** from MIME type (`audio/wav` → `audio`). You usually only pass MIME + bytes:
 
@@ -193,7 +193,6 @@ otel.instrumentation.genai:
   multimodal.upload.mode: both          # input + output
   multimodal.storage.base.path: sls://<project>/<logstore>
   multimodal.uploader: sls
-  multimodal.audio.conversion: true       # PCM → WAV on upload (CMS-friendly)
 ```
 
 Or override via environment:
@@ -205,7 +204,6 @@ export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<your-sk>
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=sls://my-project/my-logstore
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER=sls
-export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION=true
 ```
 
 Requires **aliyun-log SDK ≥ 0.6.155** on the classpath (pulled transitively by `otel-util-genai`).
@@ -273,7 +271,7 @@ Set `multimodal.upload.mode: none`, or remove `multimodal.storage.base.path`. Sp
 | No `gen_ai.*.multimodal_metadata` on span | Enable `capture.message.content`, `extended.enabled`, and `multimodal.upload.mode` ≠ `none` |
 | Log: `Falling back to local multimodal uploader` | SLS init failed — check AK/SK, endpoint, aliyun-log version |
 | GetObject 404 | Object not on SLS (local fallback wrote under `sls:/…` in repo cwd) or wrong URI (missing date prefix) |
-| CMS shows URI but no player | Use `audio/wav` + `modality: audio`; enable `multimodal.audio.conversion` for ASR PCM |
+| CMS shows URI but no player | Use `audio/wav` + `modality: audio`; ASR PCM→WAV is on by default — check you did not set `multimodal.audio.conversion: false` |
 
 ## Troubleshooting
 
@@ -284,7 +282,7 @@ Set `multimodal.upload.mode: none`, or remove `multimodal.storage.base.path`. Sp
 | `未能识别语音内容` / no speech recognized | Ensure PCM is 16 kHz mono; convert WAV with ffmpeg |
 | TTS error | Match model and voice version (v3 model + v3 voice) |
 | Multimodal not uploading | See [Multimodal blob upload](#multimodal-blob-upload-optional) |
-| CMS audio not playable | TTS outputs WAV; set `multimodal.audio.conversion: true` for ASR PCM |
+| CMS audio not playable | TTS outputs WAV; ASR PCM→WAV is on by default — verify upload produced `.wav`, not `.pcm` |
 
 ## Key classes
 

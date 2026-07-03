@@ -153,10 +153,10 @@ acs.cms.workspace=<your-workspace-id>
 
 | Span | 方向 | span 内音频 | 上传后 |
 |------|------|-------------|--------|
-| `generate_content fun-asr-realtime` | input | PCM（`audio/pcm`） | 开启 `multimodal.audio.conversion` 时为 `.wav`，否则 `.pcm` |
+| `generate_content fun-asr-realtime` | input | PCM（`audio/pcm`） | `.wav`（默认上传时 PCM→WAV） |
 | `generate_content cosyvoice-v3-plus` | output | WAV（`audio/wav`） | `.wav` |
 
-TTS 使用 `WAV_22050HZ_MONO_16BIT`，便于 CMS 渲染。ASR 输入 PCM 可通过 `multimodal.audio.conversion` 在上传时转为 WAV。
+TTS 使用 `WAV_22050HZ_MONO_16BIT`，便于 CMS 渲染。ASR 输入 PCM 默认在上传时转为 WAV（库默认 `multimodal.audio.conversion=true`）。如需上传原始 PCM，设置 `multimodal.audio.conversion: false`。
 
 `BlobPart` 的 **modality 会从 MIME 自动推断**（`audio/wav` → `audio`），一般只需传 MIME + 字节：
 
@@ -194,7 +194,6 @@ otel.instrumentation.genai:
   multimodal.upload.mode: both          # input + output
   multimodal.storage.base.path: sls://<project>/<logstore>
   multimodal.uploader: sls
-  multimodal.audio.conversion: true       # PCM → WAV（CMS 可播放）
 ```
 
 或通过环境变量覆盖：
@@ -206,7 +205,6 @@ export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<your-sk>
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=sls://my-project/my-logstore
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
 export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER=sls
-export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION=true
 ```
 
 需要 classpath 上有 **aliyun-log SDK ≥ 0.6.155**（由 `otel-util-genai` 传递依赖引入）。
@@ -264,7 +262,7 @@ python get_sls_object.py \
 | span 上没有 `gen_ai.*.multimodal_metadata` | 确认 `capture.message.content`、`extended.enabled` 已开，且 `multimodal.upload.mode` ≠ `none` |
 | 日志：`Falling back to local multimodal uploader` | SLS 初始化失败 — 检查 AK/SK、endpoint、aliyun-log 版本 |
 | GetObject 404 | 对象不在 SLS（fallback 写到本地 `sls:/…`）或 URI 错误（缺少日期前缀） |
-| CMS 有 URI 但无播放器 | 使用 `audio/wav` + `modality: audio`；ASR PCM 需开 `multimodal.audio.conversion` |
+| CMS 有 URI 但无播放器 | 使用 `audio/wav` + `modality: audio`；ASR PCM→WAV 默认开启 — 确认未设置 `multimodal.audio.conversion: false` |
 
 ## 故障排查
 
@@ -275,7 +273,7 @@ python get_sls_object.py \
 | `未能识别语音内容` | 确认 PCM 为 16kHz mono；WAV 需先 ffmpeg 转换 |
 | TTS 报错 | 检查模型/音色版本是否匹配（v3 模型 + v3 音色） |
 | 多模态未上传 | 见 [多模态 blob 上传](#多模态-blob-上传可选) |
-| CMS 音频无法播放 | TTS 已输出 WAV；ASR PCM 需 `multimodal.audio.conversion: true` |
+| CMS 音频无法播放 | TTS 已输出 WAV；ASR PCM→WAV 默认开启 — 确认上传产物为 `.wav` 而非 `.pcm` |
 
 ## Key classes
 
