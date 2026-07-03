@@ -96,6 +96,11 @@ public final class EmbeddingInvocation extends GenAiInvocation {
   }
 
   @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.EMBEDDING;
+  }
+
+  @Override
   protected String spanName() {
     return requestModel != null ? "embeddings " + requestModel : "embeddings";
   }

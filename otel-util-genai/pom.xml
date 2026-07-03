@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.alibaba.loongsuite</groupId>
         <artifactId>loongsuite-java-parent</artifactId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>0.3.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>otel-util-genai</artifactId>
@@ -43,6 +43,14 @@
             <artifactId>jspecify</artifactId>
             <version>1.0.0</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- Optional: SLS multimodal upload backend -->
+        <dependency>
+            <groupId>com.aliyun.openservices</groupId>
+            <artifactId>aliyun-log</artifactId>
+            <version>0.6.155</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- Test dependencies -->

@@ -116,6 +116,11 @@ public final class CreateAgentInvocation extends GenAiInvocation {
   }
 
   @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.AGENT;
+  }
+
+  @Override
   protected String spanName() {
     return agentName != null ? "create_agent " + agentName : "create_agent";
   }

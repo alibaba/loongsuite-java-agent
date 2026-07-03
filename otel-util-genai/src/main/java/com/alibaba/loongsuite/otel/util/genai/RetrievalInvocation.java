@@ -125,6 +125,11 @@ public final class RetrievalInvocation extends GenAiInvocation {
   }
 
   @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.RETRIEVER;
+  }
+
+  @Override
   protected String spanName() {
     return dataSourceId != null ? "retrieval " + dataSourceId : "retrieval";
   }

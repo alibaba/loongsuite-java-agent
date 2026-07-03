@@ -43,7 +43,7 @@ import org.jspecify.annotations.Nullable;
  * span.gen_ai.invoke_agent.internal} — inference-only attributes such as {@code
  * gen_ai.response.model} are intentionally excluded.
  */
-public final class AgentInvocation extends GenAiInvocation {
+public final class AgentInvocation extends GenAiInvocation implements MessageContentCapable {
 
   private final String provider;
   private final @Nullable String requestModel;
@@ -228,11 +228,13 @@ public final class AgentInvocation extends GenAiInvocation {
     return agentName;
   }
 
-  List<InputMessage> getInputMessages() {
+  @Override
+  public List<InputMessage> getInputMessages() {
     return inputMessages;
   }
 
-  List<OutputMessage> getOutputMessages() {
+  @Override
+  public List<OutputMessage> getOutputMessages() {
     return outputMessages;
   }
 
@@ -251,6 +253,11 @@ public final class AgentInvocation extends GenAiInvocation {
   @Override
   protected String operationName() {
     return "invoke_agent";
+  }
+
+  @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.AGENT;
   }
 
   @Override

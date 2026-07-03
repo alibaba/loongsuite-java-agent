@@ -16,16 +16,18 @@
 
 package com.alibaba.loongsuite.otel.util.genai;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Loads a {@link CompletionHook} implementation using the Java {@link ServiceLoader} mechanism.
+ * Loads {@link CompletionHook} implementations using the Java {@link ServiceLoader} mechanism.
  *
- * <p>The hook class name is specified via the environment variable {@link
- * GenAiEnvironmentVariables#OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK}. If the variable is not
- * set, a no-op hook is returned.
+ * <p>When multimodal upload is enabled, {@link MultimodalCompletionHook} is prepended before other
+ * hooks (such as {@link UploadCompletionHook}) so blob parts are replaced with URI references
+ * before message content is serialized to spans and events.
  */
 public final class CompletionHookLoader {
 
@@ -33,49 +35,62 @@ public final class CompletionHookLoader {
 
   private CompletionHookLoader() {}
 
-  /**
-   * Loads the configured {@link CompletionHook}, falling back to a no-op if none is configured or
-   * the specified class cannot be found.
-   */
+  /** Loads the configured {@link CompletionHook} chain, falling back to a no-op if none apply. */
   public static CompletionHook load() {
+    List<CompletionHook> chain = new ArrayList<>();
+
+    MultimodalCompletionHook multimodalHook = MultimodalCompletionHook.tryCreate();
+    if (multimodalHook != null) {
+      chain.add(multimodalHook);
+    }
+
     String hookName =
         GenAiConfigUtil.getConfigProperty(
             GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK);
-    if (hookName == null || hookName.isEmpty()) {
-      return NoOpCompletionHook.INSTANCE;
-    }
 
     if ("upload".equals(hookName)) {
       CompletionHook uploadHook = UploadCompletionHook.tryCreate();
       if (!(uploadHook instanceof NoOpCompletionHook)) {
-        return uploadHook;
+        chain.add(uploadHook);
+      }
+    } else if (hookName != null && !hookName.isEmpty()) {
+      CompletionHook customHook = loadCustomHook(hookName);
+      if (customHook != null) {
+        chain.add(customHook);
       }
     }
 
-    // Try ServiceLoader first
+    if (chain.isEmpty()) {
+      return NoOpCompletionHook.INSTANCE;
+    }
+    if (chain.size() == 1) {
+      return chain.get(0);
+    }
+    return new ChainedCompletionHook(chain);
+  }
+
+  private static CompletionHook loadCustomHook(String hookName) {
     ServiceLoader<CompletionHook> loader = ServiceLoader.load(CompletionHook.class);
     for (CompletionHook hook : loader) {
       if (hook.getClass().getName().equals(hookName)) {
-        logger.fine(() -> "Using CompletionHook " + hookName);
+        logger.fine("Using CompletionHook " + hookName);
         return hook;
       }
     }
 
-    // Fallback: try Class.forName with reflection
     try {
       Class<?> clazz = Class.forName(hookName);
       Object instance = clazz.getDeclaredConstructor().newInstance();
       if (instance instanceof CompletionHook) {
         CompletionHook ch = (CompletionHook) instance;
-        logger.fine(() -> "Loaded CompletionHook via reflection: " + hookName);
+        logger.fine("Loaded CompletionHook via reflection: " + hookName);
         return ch;
       }
       logger.warning(
-          () -> "Class " + hookName + " does not implement CompletionHook, using no-op fallback");
+          "Class " + hookName + " does not implement CompletionHook, using no-op fallback");
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to load CompletionHook: " + hookName, e);
     }
-
-    return NoOpCompletionHook.INSTANCE;
+    return null;
   }
 }

@@ -50,6 +50,7 @@ public abstract class GenAiInvocation implements AutoCloseable {
   protected final Span span;
   protected final Scope scope;
   protected final long startTimeNanos;
+  protected final long startTimeEpochMillis;
   protected final Map<String, String> extraAttributes = new LinkedHashMap<>();
   protected final Map<String, String> metricAttributes = new LinkedHashMap<>();
   protected @Nullable String errorType;
@@ -62,6 +63,7 @@ public abstract class GenAiInvocation implements AutoCloseable {
     this.span = span;
     this.scope = scope;
     this.startTimeNanos = System.nanoTime();
+    this.startTimeEpochMillis = System.currentTimeMillis();
   }
 
   // ---------------------------------------------------------------------------
@@ -151,6 +153,16 @@ public abstract class GenAiInvocation implements AutoCloseable {
     return span;
   }
 
+  /** Returns monotonic start time in nanoseconds for duration measurement. */
+  long getStartTimeNanos() {
+    return startTimeNanos;
+  }
+
+  /** Returns wall-clock start time in milliseconds since epoch for multimodal path generation. */
+  long getStartTimeEpochMillis() {
+    return startTimeEpochMillis;
+  }
+
   // ---------------------------------------------------------------------------
   // Package-private accessors (used by GenAiTelemetryHandler)
   // ---------------------------------------------------------------------------
@@ -202,9 +214,21 @@ public abstract class GenAiInvocation implements AutoCloseable {
   /** Returns the output token count, or {@code -1} if not applicable / not set. */
   protected abstract long getOutputTokens();
 
+  /**
+   * Returns the LoongSuite extended {@code gen_ai.span.kind} value for this invocation type.
+   * Subclasses override to provide the appropriate value from {@link GenAiSpanKindValues}.
+   */
+  protected abstract String spanKindValue();
+
   // ---------------------------------------------------------------------------
   // Private lifecycle implementation
   // ---------------------------------------------------------------------------
+
+  private void applyExtendedAttributes() {
+    if (GenAiConfigUtil.isExtendedEnabled()) {
+      span.setAttribute(GenAiAttributes.GEN_AI_SPAN_KIND, spanKindValue());
+    }
+  }
 
   private void finish(
       @Nullable String errorType, @Nullable String errorMessage, @Nullable Throwable errorCause) {
@@ -218,7 +242,9 @@ public abstract class GenAiInvocation implements AutoCloseable {
         span.setStatus(StatusCode.ERROR, errorMessage != null ? errorMessage : "");
         span.setAttribute(ErrorIncubatingAttributes.ERROR_TYPE, errorType);
       }
+      handler.invokeCompletionHooks(this);
       applyAttributes();
+      applyExtendedAttributes();
       for (Map.Entry<String, String> entry : extraAttributes.entrySet()) {
         span.setAttribute(entry.getKey(), entry.getValue());
       }
@@ -227,7 +253,7 @@ public abstract class GenAiInvocation implements AutoCloseable {
       if (errorType != null) {
         handler.emitExceptionEvent(this, errorType, errorMessage, errorCause);
       }
-      handler.finalizeCompletion(this);
+      handler.emitInferenceEventIfNeeded(this);
     } catch (Throwable t) {
       logger.log(Level.FINE, "Error finalizing invocation telemetry", t);
     } finally {

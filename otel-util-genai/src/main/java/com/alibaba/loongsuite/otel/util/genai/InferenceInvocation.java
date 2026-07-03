@@ -44,7 +44,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>SpanKind is {@code CLIENT}. The handler sets this when creating the span.
  */
-public final class InferenceInvocation extends GenAiInvocation implements StreamMetricsCapable {
+public final class InferenceInvocation extends GenAiInvocation
+    implements StreamMetricsCapable, MessageContentCapable {
 
   private final List<Double> interChunkDelays = new ArrayList<>();
 
@@ -77,6 +78,7 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
   private @Nullable String responseModel;
   private @Nullable String responseId;
   private @Nullable List<String> finishReasons;
+  private @Nullable MutableEventLogRecord pendingEvent;
   private @Nullable Long inputTokens;
   private @Nullable Long outputTokens;
   private @Nullable Long thinkingTokens;
@@ -231,7 +233,8 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
   // Package-private getters (for handler event emission and metrics)
   // ---------------------------------------------------------------------------
 
-  List<InputMessage> getInputMessages() {
+  @Override
+  public List<InputMessage> getInputMessages() {
     return inputMessages;
   }
 
@@ -239,7 +242,8 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
     return systemInstruction;
   }
 
-  List<OutputMessage> getOutputMessages() {
+  @Override
+  public List<OutputMessage> getOutputMessages() {
     return outputMessages;
   }
 
@@ -261,6 +265,15 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
     return timeToFirstChunk;
   }
 
+  @Nullable
+  MutableEventLogRecord getPendingEvent() {
+    return pendingEvent;
+  }
+
+  void setPendingEvent(@Nullable MutableEventLogRecord pendingEvent) {
+    this.pendingEvent = pendingEvent;
+  }
+
   // ---------------------------------------------------------------------------
   // GenAiInvocation overrides
   // ---------------------------------------------------------------------------
@@ -268,6 +281,11 @@ public final class InferenceInvocation extends GenAiInvocation implements Stream
   @Override
   protected String operationName() {
     return customOperationName != null ? customOperationName : "chat";
+  }
+
+  @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.LLM;
   }
 
   @Override

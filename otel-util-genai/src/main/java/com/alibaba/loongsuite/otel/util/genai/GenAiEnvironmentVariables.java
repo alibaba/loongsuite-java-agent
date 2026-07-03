@@ -38,5 +38,30 @@ public final class GenAiEnvironmentVariables {
 
   public static final String OTEL_SEMCONV_STABILITY_OPT_IN = "OTEL_SEMCONV_STABILITY_OPT_IN";
 
+  public static final String OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE =
+      "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE";
+
+  public static final String OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH =
+      "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH";
+
+  public static final String OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER =
+      "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER";
+
+  public static final String OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION =
+      "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION";
+
+  public static final String OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_MAX_QUEUE_SIZE =
+      "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_MAX_QUEUE_SIZE";
+
+  /**
+   * Controls whether LoongSuite extended (non-OTel standard) GenAI semantics are emitted.
+   *
+   * <p>When {@code true} (default), attributes like {@code gen_ai.span.kind},
+   * {@code gen_ai.*.multimodal_metadata}, and {@code gen_ai.*_ref} are set on spans.
+   * Set to {@code false} to emit only official OTel semconv attributes.
+   */
+  public static final String OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED =
+      "OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED";
+
   private GenAiEnvironmentVariables() {}
 }

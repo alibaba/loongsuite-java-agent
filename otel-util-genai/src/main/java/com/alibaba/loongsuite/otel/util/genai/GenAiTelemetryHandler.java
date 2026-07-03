@@ -605,55 +605,50 @@ public final class GenAiTelemetryHandler {
   }
 
   /**
-   * Finalizes completion hooks and inference events.
+   * Runs completion hooks before span content attributes are applied.
    *
-   * <p>For inference invocations with event emission enabled, builds the pending event, invokes the
-   * completion hook (so hooks can stamp refs on span and event), then emits the event. Matches
-   * Python ordering: metrics → create event → hook → emit event.
+   * <p>Multimodal hooks replace {@code BlobPart} values with {@code UriPart} references; upload
+   * hooks may stamp {@code *_ref} attributes on the span and pending event record.
    */
-  void finalizeCompletion(GenAiInvocation invocation) {
+  void invokeCompletionHooks(GenAiInvocation invocation) {
     if (invocation instanceof InferenceInvocation) {
-      finalizeInferenceCompletion((InferenceInvocation) invocation);
-    } else if (invocation instanceof AgentInvocation) {
-      invokeAgentCompletionHook((AgentInvocation) invocation);
-    } else if (invocation instanceof WorkflowInvocation) {
+      InferenceInvocation inference = (InferenceInvocation) invocation;
+      MutableEventLogRecord pendingEvent = null;
+      if (GenAiConfigUtil.shouldEmitEvent() && GenAiConfigUtil.isExperimentalMode()) {
+        pendingEvent =
+            new MutableEventLogRecord(io.opentelemetry.api.common.Attributes.builder().build());
+      }
       completionHook.onCompletion(
-          DefaultCompletionHookContext.forWorkflow((WorkflowInvocation) invocation, null));
+          MutableCompletionHookContext.forInference(inference, pendingEvent));
+      inference.setPendingEvent(pendingEvent);
+    } else if (invocation instanceof AgentInvocation) {
+      AgentInvocation agent = (AgentInvocation) invocation;
+      completionHook.onCompletion(MutableCompletionHookContext.forAgent(agent, null));
+    } else if (invocation instanceof WorkflowInvocation) {
+      WorkflowInvocation workflow = (WorkflowInvocation) invocation;
+      completionHook.onCompletion(MutableCompletionHookContext.forWorkflow(workflow, null));
     }
   }
 
-  private void finalizeInferenceCompletion(InferenceInvocation invocation) {
-    MutableEventLogRecord pendingEvent = null;
-    if (GenAiConfigUtil.shouldEmitEvent() && GenAiConfigUtil.isExperimentalMode()) {
-      Attributes eventAttrs =
-          invocation.buildEventAttributes(invocation.errorType, invocation.getExtraAttributes());
-      pendingEvent = new MutableEventLogRecord(eventAttrs);
+  /** Emits the inference details event after span attributes have been applied. */
+  void emitInferenceEventIfNeeded(GenAiInvocation invocation) {
+    if (!(invocation instanceof InferenceInvocation)) {
+      return;
     }
-
-    List<ToolDefinition> tools = invocation.getToolDefinitions();
-    completionHook.onCompletion(
-        new DefaultCompletionHookContext(
-            invocation.getInputMessages(),
-            invocation.getOutputMessages(),
-            invocation.getSystemInstruction(),
-            tools.isEmpty() ? null : tools,
-            invocation.getSpan(),
-            pendingEvent));
-
+    InferenceInvocation inference = (InferenceInvocation) invocation;
+    if (!GenAiConfigUtil.shouldEmitEvent() || !GenAiConfigUtil.isExperimentalMode()) {
+      return;
+    }
+    Attributes contentAttrs =
+        inference.buildEventAttributes(inference.errorType, inference.getExtraAttributes());
+    MutableEventLogRecord pendingEvent = inference.getPendingEvent();
     if (pendingEvent != null) {
-      emitInferenceEvent(invocation, pendingEvent);
+      AttributesBuilder merged = contentAttrs.toBuilder();
+      merged.putAll(pendingEvent.getAttributes());
+      emitInferenceEvent(inference, new MutableEventLogRecord(merged.build()));
+      return;
     }
-  }
-
-  private void invokeAgentCompletionHook(AgentInvocation agent) {
-    List<ToolDefinition> tools = agent.getToolDefinitions();
-    completionHook.onCompletion(
-        new DefaultCompletionHookContext(
-            agent.getInputMessages(),
-            agent.getOutputMessages(),
-            agent.getSystemInstruction(),
-            tools.isEmpty() ? null : tools,
-            agent.getSpan()));
+    emitInferenceEvent(inference, new MutableEventLogRecord(contentAttrs));
   }
 
   private void emitInferenceEvent(InferenceInvocation invocation, EventLogRecord pendingEvent) {
