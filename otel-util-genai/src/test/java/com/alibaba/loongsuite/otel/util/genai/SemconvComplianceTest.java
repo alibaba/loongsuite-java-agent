@@ -78,7 +78,10 @@ class SemconvComplianceTest {
                 "gen_ai.input.messages_ref",
                 "gen_ai.output.messages_ref",
                 "gen_ai.system_instructions_ref",
-                "gen_ai.tool.definitions_ref"));
+                "gen_ai.tool.definitions_ref",
+                "gen_ai.input.multimodal_metadata",
+                "gen_ai.output.multimodal_metadata",
+                "gen_ai.span.kind"));
   }
 
   @BeforeAll

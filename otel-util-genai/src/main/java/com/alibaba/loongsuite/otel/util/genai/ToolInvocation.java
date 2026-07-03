@@ -107,6 +107,11 @@ public final class ToolInvocation extends GenAiInvocation {
   }
 
   @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.TOOL;
+  }
+
+  @Override
   protected String spanName() {
     return "execute_tool " + name;
   }

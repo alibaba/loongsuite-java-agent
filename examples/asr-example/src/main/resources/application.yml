@@ -1,0 +1,88 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: genai-asr-example
+
+# ---------------------------------------------------------------------------
+# DashScope (China North 2 / Beijing)
+# Replace <your-dashscope-api-key> below — shared by LLM / ASR / TTS.
+# Production: use a secret manager or env vars; never commit real keys to git.
+# ---------------------------------------------------------------------------
+genai:
+  api-key: ${GENAI_API_KEY:${DASHSCOPE_API_KEY:<your-dashscope-api-key>}}
+  base-url: ${GENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+  provider: ${GENAI_PROVIDER:dashscope}
+  model: ${GENAI_MODEL:qwen-plus}
+
+dashscope:
+  server-host: ${DASHSCOPE_SERVER_HOST:dashscope.aliyuncs.com}
+  asr:
+    model: ${DASHSCOPE_ASR_MODEL:fun-asr-realtime}
+    sample-rate: ${DASHSCOPE_ASR_SAMPLE_RATE:16000}
+  tts:
+    model: ${DASHSCOPE_TTS_MODEL:cosyvoice-v3-plus}
+    voice: ${DASHSCOPE_TTS_VOICE:longanyang}
+
+# ---------------------------------------------------------------------------
+# otel-util-genai required / recommended settings
+#
+# [Required] otel.semconv.stability.opt.in=gen_ai_latest_experimental
+# [Required] otel.instrumentation.genai.capture.message.content (e.g. span_and_event)
+# [Recommended] otel.instrumentation.genai.emit.event=true
+#
+# CMS/ARMS GenAI view — OTEL_RESOURCE_ATTRIBUTES must include:
+#   gen_ai.instrumentation.sdk.name=loongsuite-genai-utils
+#   acs.arms.service.feature=genai_app
+#   acs.cms.workspace=<your-workspace-id>
+#
+# [Optional] Multimodal blob upload — NOT required for GenAI spans.
+# Default below uses local disk; set multimodal.upload.mode: none to disable upload entirely.
+# For SLS upload, set multimodal.storage.base.path / uploader below and provide cloud credentials via env.
+# ---------------------------------------------------------------------------
+otel.semconv.stability.opt.in: gen_ai_latest_experimental
+otel.instrumentation.genai:
+  capture.message.content: span_and_event
+  emit.event: true
+  extended.enabled: ${OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED:true}
+  multimodal.upload.mode: both
+  multimodal.storage.base.path: ${OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH:file:///tmp/genai-multimodal}
+  multimodal.uploader: ${OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER:local}
+
+# ---------------------------------------------------------------------------
+# OpenTelemetry SDK — defaults export OTLP to CMS APM.
+# Replace <your-*> placeholders below with your CMS credentials.
+# Set OTEL_TRACES_EXPORTER=logging for local trace debugging without CMS.
+#
+# CMS/ARMS GenAI view requires OTEL_RESOURCE_ATTRIBUTES to include:
+#   gen_ai.instrumentation.sdk.name=loongsuite-genai-utils
+#   acs.arms.service.feature=genai_app
+#   acs.cms.workspace=<your-workspace-id>
+# ---------------------------------------------------------------------------
+otel:
+  service:
+    name: ${OTEL_SERVICE_NAME:genai-asr-example}
+  resource:
+    attributes: ${OTEL_RESOURCE_ATTRIBUTES:service.name=genai-asr-example,service.version=1.0,deployment.environment=dev,gen_ai.instrumentation.sdk.name=loongsuite-genai-utils,acs.arms.service.feature=genai_app,acs.cms.workspace=<your-workspace-id>}
+  traces:
+    exporter: ${OTEL_TRACES_EXPORTER:otlp}
+  metrics:
+    exporter: ${OTEL_METRICS_EXPORTER:otlp}
+  logs:
+    exporter: ${OTEL_LOGS_EXPORTER:none}
+  metric:
+    export:
+      interval: ${OTEL_METRIC_EXPORT_INTERVAL:5000}
+  exporter:
+    otlp:
+      protocol: ${OTEL_EXPORTER_OTLP_PROTOCOL:http/protobuf}
+      headers: ${OTEL_EXPORTER_OTLP_HEADERS:x-arms-license-key=<your-license-key>,x-arms-project=<your-project>,x-cms-workspace=<your-workspace-id>}
+      traces:
+        endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/traces}
+      metrics:
+        endpoint: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/metrics}
+
+logging:
+  level:
+    com.alibaba.loongsuite.otel.util.genai.example.asr: INFO

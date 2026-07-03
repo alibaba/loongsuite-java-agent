@@ -23,4 +23,4 @@ jobs:
         run: mvn -B spotless:check
 
       - name: Build and test
-        run: mvn -B verify -pl otel-util-genai -am
+        run: mvn -B verify -pl otel-util-genai,examples/example-common,examples/basic-example,examples/asr-example -am

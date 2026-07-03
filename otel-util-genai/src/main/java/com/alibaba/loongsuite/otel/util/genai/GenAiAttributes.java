@@ -60,5 +60,24 @@ final class GenAiAttributes {
   static final AttributeKey<String> GEN_AI_TOOL_DEFINITIONS_REF =
       AttributeKey.stringKey("gen_ai.tool.definitions_ref");
 
+  /** LoongSuite extended attribute (not in OTel GenAI semconv 1.41.1). */
+  static final AttributeKey<String> GEN_AI_INPUT_MULTIMODAL_METADATA =
+      AttributeKey.stringKey("gen_ai.input.multimodal_metadata");
+
+  /** LoongSuite extended attribute (not in OTel GenAI semconv 1.41.1). */
+  static final AttributeKey<String> GEN_AI_OUTPUT_MULTIMODAL_METADATA =
+      AttributeKey.stringKey("gen_ai.output.multimodal_metadata");
+
+  /**
+   * LoongSuite extended attribute: logical GenAI span kind.
+   *
+   * <p>Represents the role of the operation in the AI pipeline (LLM, AGENT, TOOL, etc.).
+   * Distinct from OTel's SpanKind (CLIENT/INTERNAL). Gated by {@code isExtendedEnabled()}.
+   *
+   * @see GenAiSpanKindValues
+   */
+  static final AttributeKey<String> GEN_AI_SPAN_KIND =
+      AttributeKey.stringKey("gen_ai.span.kind");
+
   private GenAiAttributes() {}
 }

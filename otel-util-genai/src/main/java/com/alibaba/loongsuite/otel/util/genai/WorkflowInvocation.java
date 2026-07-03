@@ -37,7 +37,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>SpanKind is {@code INTERNAL}. The handler sets this when creating the span.
  */
-public final class WorkflowInvocation extends GenAiInvocation {
+public final class WorkflowInvocation extends GenAiInvocation implements MessageContentCapable {
 
   private final @Nullable String name;
 
@@ -69,11 +69,13 @@ public final class WorkflowInvocation extends GenAiInvocation {
     return name;
   }
 
-  List<InputMessage> getInputMessages() {
+  @Override
+  public List<InputMessage> getInputMessages() {
     return inputMessages;
   }
 
-  List<OutputMessage> getOutputMessages() {
+  @Override
+  public List<OutputMessage> getOutputMessages() {
     return outputMessages;
   }
 
@@ -84,6 +86,11 @@ public final class WorkflowInvocation extends GenAiInvocation {
   @Override
   protected String operationName() {
     return "invoke_workflow";
+  }
+
+  @Override
+  protected String spanKindValue() {
+    return GenAiSpanKindValues.WORKFLOW;
   }
 
   @Override

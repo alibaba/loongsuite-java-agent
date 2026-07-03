@@ -10,23 +10,40 @@
         <version>0.2.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>examples</artifactId>
-    <packaging>jar</packaging>
+    <artifactId>loongsuite-genai-examples</artifactId>
+    <packaging>pom</packaging>
 
     <name>LoongSuite OTel GenAI Utils - Examples</name>
-    <description>Spring Boot example for otel-util-genai</description>
+    <description>GenAI manual instrumentation examples (basic REST, ASR WebSocket, ...)</description>
 
     <properties>
         <spring-boot.version>3.5.3</spring-boot.version>
         <openai-java.version>4.26.0</openai-java.version>
+        <dashscope-sdk.version>2.22.0</dashscope-sdk.version>
         <loongsuite.publish.skip>true</loongsuite.publish.skip>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
+    <modules>
+        <module>example-common</module>
+        <module>basic-example</module>
+        <module>asr-example</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
-            <!-- OTel BOM MUST come before Spring Boot BOM to override its managed OTel versions -->
+            <!-- Align with opentelemetry-exporter-sender-okhttp (okhttp-jvm 5.x); dashscope-sdk pins okio 3.6.0 -->
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>3.16.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio-jvm</artifactId>
+                <version>3.16.4</version>
+            </dependency>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-bom</artifactId>
@@ -41,53 +58,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>com.alibaba.loongsuite</groupId>
+                <artifactId>example-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <!-- Spring Boot Web -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- 本库（SNAPSHOT，与 parent ${project.version} 对齐） -->
-        <dependency>
-            <groupId>com.alibaba.loongsuite</groupId>
-            <artifactId>otel-util-genai</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- OTel SDK + autoconfigure (no instrumentation starter — keeps Weaver live-check output clean) -->
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-sdk</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
-        </dependency>
-
-        <!-- OTLP Exporter（发送到 OTel Collector / ARMS） -->
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-exporter-otlp</artifactId>
-        </dependency>
-        <!-- OpenAI Java SDK -->
-        <dependency>
-            <groupId>com.openai</groupId>
-            <artifactId>openai-java</artifactId>
-            <version>${openai-java.version}</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-            </plugin>
-        </plugins>
-    </build>
 </project>

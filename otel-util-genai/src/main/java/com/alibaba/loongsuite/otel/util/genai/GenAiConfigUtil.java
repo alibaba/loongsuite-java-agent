@@ -170,6 +170,57 @@ public final class GenAiConfigUtil {
     return getProperty(envVarName);
   }
 
+  /**
+   * Returns multimodal upload mode: {@code none}, {@code input}, {@code output}, or {@code both}.
+   * Defaults to {@code none}.
+   */
+  public static MultimodalUploadMode getMultimodalUploadMode() {
+    String value =
+        getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE);
+    return MultimodalUploadMode.fromString(value);
+  }
+
+  public static boolean shouldProcessMultimodalInput() {
+    MultimodalUploadMode mode = getMultimodalUploadMode();
+    return mode == MultimodalUploadMode.INPUT || mode == MultimodalUploadMode.BOTH;
+  }
+
+  public static boolean shouldProcessMultimodalOutput() {
+    MultimodalUploadMode mode = getMultimodalUploadMode();
+    return mode == MultimodalUploadMode.OUTPUT || mode == MultimodalUploadMode.BOTH;
+  }
+
+  public static boolean isMultimodalAudioConversionEnabled() {
+    String value =
+        getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION);
+    return "true".equalsIgnoreCase(value);
+  }
+
+  public static boolean isMultimodalUploadEnabled() {
+    if (getMultimodalUploadMode() == MultimodalUploadMode.NONE) {
+      return false;
+    }
+    String basePath =
+        getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH);
+    return basePath != null && !basePath.isEmpty();
+  }
+
+  /**
+   * Returns whether LoongSuite extended GenAI semantics are enabled.
+   *
+   * <p>Controls non-standard attributes like {@code gen_ai.span.kind},
+   * {@code gen_ai.*.multimodal_metadata}, and {@code gen_ai.*_ref}.
+   * Defaults to {@code true} (LoongSuite distribution has extensions on by default).
+   */
+  public static boolean isExtendedEnabled() {
+    String value =
+        getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_EXTENDED_ENABLED);
+    if (value == null || value.isEmpty()) {
+      return true;
+    }
+    return !"false".equalsIgnoreCase(value);
+  }
+
   private static String getProperty(String envVarName) {
     String sysPropName = envVarName.toLowerCase().replace('_', '.');
     String value = System.getProperty(sysPropName);

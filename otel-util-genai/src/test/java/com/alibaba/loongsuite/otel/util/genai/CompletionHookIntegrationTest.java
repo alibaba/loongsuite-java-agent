@@ -116,8 +116,7 @@ class CompletionHookIntegrationTest {
     }
 
     assertNotNull(capturedRecord.get());
-    assertEquals(
-        10L,
+    assertNull(
         capturedRecord
             .get()
             .getAttributes()

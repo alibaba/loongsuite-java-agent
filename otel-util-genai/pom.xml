@@ -45,6 +45,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Optional: SLS multimodal upload backend -->
+        <dependency>
+            <groupId>com.aliyun.openservices</groupId>
+            <artifactId>aliyun-log</artifactId>
+            <version>0.6.155</version>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

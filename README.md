@@ -1,7 +1,5 @@
 # LoongSuite Java GenAI Utils
 
-**English** | [中文](README_zh.md)
-
 ## Introduction
 
 LoongSuite Java GenAI Utils is a key component of LoongSuite, Alibaba's unified observability data collection suite, providing shared telemetry lifecycle management for Java GenAI instrumentation.

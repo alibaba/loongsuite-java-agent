@@ -1,0 +1,70 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: genai-basic-example
+
+# -------------------------------------------------------
+# GenAI — replace <your-dashscope-api-key> below.
+# Production: use a secret manager or env vars; never commit real keys to git.
+# -------------------------------------------------------
+genai:
+  api-key: ${GENAI_API_KEY:<your-dashscope-api-key>}
+  base-url: ${GENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+  provider: ${GENAI_PROVIDER:dashscope}
+  model: ${GENAI_MODEL:qwen-plus}
+  temperature: ${GENAI_TEMPERATURE:0.7}
+  max-tokens: ${GENAI_MAX_TOKENS:1024}
+
+# -------------------------------------------------------
+# otel-util-genai required / recommended settings
+#
+# [Required] otel.semconv.stability.opt.in=gen_ai_latest_experimental
+# [Required] otel.instrumentation.genai.capture.message.content (e.g. span_and_event)
+# [Recommended] otel.instrumentation.genai.emit.event=true
+#
+# CMS/ARMS GenAI view — OTEL_RESOURCE_ATTRIBUTES must include:
+#   gen_ai.instrumentation.sdk.name=loongsuite-genai-utils
+#   acs.arms.service.feature=genai_app
+#   acs.cms.workspace=<your-workspace-id>
+#
+# [Optional] Multimodal blob upload — not used in basic-example (text only).
+# -------------------------------------------------------
+otel.semconv.stability.opt.in: gen_ai_latest_experimental
+
+otel.instrumentation.genai:
+  capture.message.content: span_and_event
+  emit.event: true
+
+# -------------------------------------------------------
+# OpenTelemetry SDK — defaults export OTLP to CMS APM.
+# Replace <your-*> placeholders below with your CMS credentials.
+#
+# CMS/ARMS GenAI view requires OTEL_RESOURCE_ATTRIBUTES to include:
+#   gen_ai.instrumentation.sdk.name=loongsuite-genai-utils
+#   acs.arms.service.feature=genai_app
+#   acs.cms.workspace=<your-workspace-id>
+# -------------------------------------------------------
+otel:
+  service:
+    name: ${OTEL_SERVICE_NAME:genai-basic-example}
+  resource:
+    attributes: ${OTEL_RESOURCE_ATTRIBUTES:service.name=genai-basic-example,service.version=1.0,deployment.environment=dev,gen_ai.instrumentation.sdk.name=loongsuite-genai-utils,acs.arms.service.feature=genai_app,acs.cms.workspace=<your-workspace-id>}
+  traces:
+    exporter: ${OTEL_TRACES_EXPORTER:otlp}
+  metrics:
+    exporter: ${OTEL_METRICS_EXPORTER:otlp}
+  logs:
+    exporter: ${OTEL_LOGS_EXPORTER:none}
+  metric:
+    export:
+      interval: ${OTEL_METRIC_EXPORT_INTERVAL:5000}
+  exporter:
+    otlp:
+      protocol: ${OTEL_EXPORTER_OTLP_PROTOCOL:http/protobuf}
+      headers: ${OTEL_EXPORTER_OTLP_HEADERS:x-arms-license-key=<your-license-key>,x-arms-project=<your-project>,x-cms-workspace=<your-workspace-id>}
+      traces:
+        endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/traces}
+      metrics:
+        endpoint: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:https://<your-project>.<region>.log.aliyuncs.com/apm/trace/opentelemetry/v1/metrics}

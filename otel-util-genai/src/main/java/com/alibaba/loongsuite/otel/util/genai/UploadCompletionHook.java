@@ -166,7 +166,9 @@ public final class UploadCompletionHook implements CompletionHook {
       submitUpload(path, toolHash != null, GenAiContentSerializer.toMapList(toolDefinitions));
     }
 
-    stampRefs(context.getSpan(), context.getLogRecord(), refs);
+    if (GenAiConfigUtil.isExtendedEnabled()) {
+      stampRefs(context.getSpan(), context.getLogRecord(), refs);
+    }
   }
 
   /** Flushes pending uploads. */

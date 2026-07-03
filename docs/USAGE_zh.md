@@ -2,7 +2,7 @@
 
 [English](USAGE.md) | **中文**
 
-`otel-util-genai` 详细用法。安装与 Maven 坐标见 [README_zh.md](../README_zh.md)。
+`otel-util-genai` 详细用法。安装与 Maven 坐标见 [README.zh-CN.md](../README.zh-CN.md)。
 
 ## 快速开始
 
