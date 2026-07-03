@@ -190,10 +190,19 @@ public final class GenAiConfigUtil {
     return mode == MultimodalUploadMode.OUTPUT || mode == MultimodalUploadMode.BOTH;
   }
 
+  /**
+   * Returns whether PCM audio blobs are converted to WAV before multimodal upload.
+   *
+   * <p>Defaults to {@code true} so CMS and other consumers can play uploaded ASR input (16 kHz
+   * mono PCM). Set to {@code false} to upload raw PCM.
+   */
   public static boolean isMultimodalAudioConversionEnabled() {
     String value =
         getProperty(GenAiEnvironmentVariables.OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION);
-    return "true".equalsIgnoreCase(value);
+    if (value == null || value.isEmpty()) {
+      return true;
+    }
+    return !"false".equalsIgnoreCase(value);
   }
 
   public static boolean isMultimodalUploadEnabled() {

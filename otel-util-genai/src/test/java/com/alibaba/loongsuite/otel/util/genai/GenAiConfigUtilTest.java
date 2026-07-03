@@ -23,13 +23,21 @@ import static com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode.
 import static com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode.fromString;
 import static com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode.valueOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alibaba.loongsuite.otel.util.genai.types.ContentCapturingMode;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class GenAiConfigUtilTest {
+
+  @AfterEach
+  void tearDown() {
+    System.clearProperty("otel.instrumentation.genai.multimodal.audio.conversion");
+  }
 
   @Test
   void testContentCapturingModeFromStringNoContent() {
@@ -83,5 +91,16 @@ class GenAiConfigUtilTest {
   @Test
   void testContentCapturingModeInvalidWithSpaces() {
     assertThrows(IllegalArgumentException.class, () -> fromString(" span_only "));
+  }
+
+  @Test
+  void multimodalAudioConversionDefaultsToTrue() {
+    assertTrue(GenAiConfigUtil.isMultimodalAudioConversionEnabled());
+  }
+
+  @Test
+  void multimodalAudioConversionCanBeDisabled() {
+    System.setProperty("otel.instrumentation.genai.multimodal.audio.conversion", "false");
+    assertFalse(GenAiConfigUtil.isMultimodalAudioConversionEnabled());
   }
 }

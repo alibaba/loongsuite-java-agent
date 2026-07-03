@@ -19,6 +19,7 @@ package com.alibaba.loongsuite.otel.util.genai;
 import com.alibaba.loongsuite.otel.util.genai.types.BlobPart;
 import com.alibaba.loongsuite.otel.util.genai.types.InputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.MessagePart;
+import com.alibaba.loongsuite.otel.util.genai.types.Modality;
 import com.alibaba.loongsuite.otel.util.genai.types.OutputMessage;
 import com.alibaba.loongsuite.otel.util.genai.types.UriPart;
 
@@ -184,7 +185,9 @@ public final class MultimodalPreUploader {
           mimeType = "audio/wav";
         }
       }
-      UploadItemAndUri created = createUploadItem(normalized, mimeType, blob.modality(), traceId, spanId, timestampSeconds);
+      String modality = Modality.resolve(blob.modality(), mimeType);
+      UploadItemAndUri created =
+          createUploadItem(normalized, mimeType, modality, traceId, spanId, timestampSeconds);
       uploads.add(created.uploadItem());
       parts.set(idx, created.uriPart());
       processed++;
@@ -214,9 +217,11 @@ public final class MultimodalPreUploader {
       meta.put("spanId", spanId);
     }
 
+    String resolvedModality = Modality.resolve(modality, mimeType);
+
     MultimodalUploadItem uploadItem =
         new MultimodalUploadItem(fullUrl, mimeType, data, meta);
-    UriPart uriPart = new UriPart(modality, mimeType, fullUrl);
+    UriPart uriPart = new UriPart(resolvedModality, mimeType, fullUrl);
     return new UploadItemAndUri(uploadItem, uriPart);
   }
 

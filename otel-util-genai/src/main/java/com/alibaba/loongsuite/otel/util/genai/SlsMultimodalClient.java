@@ -203,6 +203,10 @@ final class SlsMultimodalClient {
       if (value != null && !value.isEmpty()) {
         return value.trim();
       }
+      value = System.getProperty(name);
+      if (value != null && !value.isEmpty()) {
+        return value.trim();
+      }
     }
     return null;
   }
